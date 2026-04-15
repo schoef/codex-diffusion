@@ -277,6 +277,86 @@ which is a Riccati equation when $V(\mu)=a_0+a_1\mu+a_2\mu^2$.
 Thus, in a NEF--QVF, the entire family of tilted laws $\{p_{\eta+j}\}_{j}$ is encoded by the single
 ODE \eqref{eq:cgf-qvf-ode} (or \eqref{eq:mean-flow-qvf}) with initial data fixed by the baseline mean.
 
+\subsubsection{Transport semigroup in mean coordinates}
+The notebook scaffold uses the first-order operator
+\begin{align}
+\mathcal D:=V(\mu)\,\partial_\mu
+\label{eq:qvf-transport-generator}
+\end{align}
+as the family-uniform transport generator. This is the correct forward generator for observables on the mean chart.
+Let $\Phi_t(\mu)$ denote the tilt flow,
+\begin{align}
+\partial_t\Phi_t(\mu)=V(\Phi_t(\mu)),
+\qquad
+\Phi_0(\mu)=\mu,
+\label{eq:qvf-flow}
+\end{align}
+or equivalently $\Phi_t(\mu)=A'(\eta(\mu)+t)$. Then
+\begin{align}
+(P_t f)(\mu):=f(\Phi_t(\mu))=\big(e^{t\mathcal D}f\big)(\mu)
+\label{eq:qvf-forward-semigroup}
+\end{align}
+defines a semigroup on test functions $f$, with Kolmogorov equation
+\begin{align}
+\partial_t u_t(\mu)=\mathcal D u_t(\mu),
+\qquad
+u_0=f.
+\label{eq:qvf-forward-kolmogorov}
+\end{align}
+Since $\partial_\mu\Phi_t(\mu)=V(\Phi_t(\mu))/V(\mu)$, the adjoint with respect to Lebesgue measure is
+\begin{align}
+\mathcal D^\dagger\rho(\mu)=-\partial_\mu\!\big(V(\mu)\rho(\mu)\big),
+\label{eq:qvf-adjoint-generator}
+\end{align}
+and its semigroup transports densities by the inverse flow,
+\begin{align}
+(P_t^\dagger\rho)(\mu)
+=\rho(\Phi_{-t}(\mu))\,\partial_\mu\Phi_{-t}(\mu)
+=\rho(\Phi_{-t}(\mu))\,\frac{V(\Phi_{-t}(\mu))}{V(\mu)}.
+\label{eq:qvf-adjoint-semigroup}
+\end{align}
+Equivalently, relative to the natural transport measure
+\begin{align}
+\dd\lambda(\mu):=\frac{\dd\mu}{V(\mu)}=\dd\eta,
+\label{eq:qvf-transport-measure}
+\end{align}
+the flow is measure-preserving and the adjoint is just pullback by the inverse characteristic:
+\begin{align}
+\int (P_t f)(\mu)\,\rho(\mu)\,\dd\lambda(\mu)
+=\int f(\mu)\,(\widetilde P_t^\dagger\rho)(\mu)\,\dd\lambda(\mu),
+\qquad
+(\widetilde P_t^\dagger\rho)(\mu)=\rho(\Phi_{-t}(\mu)).
+\label{eq:qvf-adjoint-lambda}
+\end{align}
+For implementation this gives the common forward/backward ansatz:
+\begin{align}
+\partial_t u_t=\mathcal D u_t
+\quad\text{for observables,}
+\qquad
+\partial_t\rho_t=\mathcal D^\dagger\rho_t
+\quad\text{for densities or coefficient weights,}
+\label{eq:qvf-forward-backward-ansatz}
+\end{align}
+with family-specific content entering only through $V$ or, equivalently, through the closed form of $\Phi_t$.
+
+For the six Morris families, the same definition \eqref{eq:qvf-flow} specializes to
+\begin{align}
+\Phi_t^{\mathrm{N}}(\mu)&=\mu+\sigma_0^2 t,
+\nonumber\\
+\Phi_t^{\mathrm{Poi}}(\mu)&=e^t\mu,
+\nonumber\\
+\Phi_t^{\Gamma}(\mu)&=\frac{\mu}{1-\mu t/r},
+\nonumber\\
+\Phi_t^{\mathrm{Bin}}(\mu)&=\frac{N e^t\mu}{N-\mu+e^t\mu},
+\label{eq:qvf-family-flows}\\
+\Phi_t^{\mathrm{NB}}(\mu)&=\frac{e^t\mu}{1+\frac{\mu}{r}(1-e^t)},
+\nonumber\\
+\Phi_t^{\mathrm{GHS}}(\mu)&=
+r\,\frac{\mu+r\tan(t/2)}{r-\mu\tan(t/2)}.
+\nonumber
+\end{align}
+These formulas are exactly what the notebook should evaluate first: $\Phi_t$ for the forward characteristic, $\mathcal D=V\partial_\mu$ for interior finite-difference checks, and either \eqref{eq:qvf-adjoint-semigroup} or \eqref{eq:qvf-adjoint-lambda} for backward transport.
+
 \subsubsection{Polynomial systems}
 
 The Riccati flow derived in the previous subsection is the ``one-parameter tilt dynamics'' of a NEF in mean
@@ -327,7 +407,7 @@ transformations
 \]
 On the orthogonal-polynomial side, Meixner classified orthogonal Sheffer polynomials, i.e.\
 those OPS admitting an exponential-type generating function compatible with an exponential-tilting semigroup.
-These two classifications match: {every NEF--QVF carries an OPS in the Meixner class, and conversely the Meixner
+These two classifications match: every NEF--QVF carries an OPS in the Meixner class, and conversely the Meixner
 class measures generate NEF--QVF families under exponential tilting. In the language of special functions, these OPS sit
 in the (hypergeometric) Askey scheme: the Meixner class occupies the ``classical'' level where the orthogonality
 measures are stable under tilting and the polynomials satisfy a second-order differential/difference (or imaginary-shift)
@@ -342,6 +422,56 @@ In what follows, we exploit this structure in the most direct way, starting from
 coordinate $z=z(t)$ adapted to each family, and read off the generating function coefficients $P_n(x;\eta)$. The NEF--QVF
 property guarantees that these coefficients are not merely polynomials but an OPS with the Meixner-class algebra, and this
 is what ultimately makes perturbative calculations tractable.
+
+Fix a reference parameter $\eta$ and let $\{\phi_n(\cdot;\eta)\}_{n\ge0}$ be the corresponding orthonormal Meixner-class basis in $L^2(p_\eta)$, so that
+\begin{align}
+x\,\phi_n(x;\eta)
+=a_{n+1}^{(\eta)}\phi_{n+1}(x;\eta)+b_n^{(\eta)}\phi_n(x;\eta)+a_n^{(\eta)}\phi_{n-1}(x;\eta),
+\qquad
+a_0^{(\eta)}:=0.
+\label{eq:qvf-jacobi-recurrence}
+\end{align}
+The exact transport orbit of the tilted law relative to the baseline,
+\begin{align}
+R_t(x;\eta):=\frac{p_{\eta+t}(x)}{p_\eta(x)},
+\qquad
+\mu_t:=A'(\eta+t)=\Phi_t(\mu),
+\label{eq:qvf-ratio-transport}
+\end{align}
+satisfies
+\begin{align}
+\partial_t R_t(x;\eta)=(x-\mu_t)\,R_t(x;\eta),
+\qquad
+R_0(x;\eta)=1.
+\label{eq:qvf-ratio-evolution}
+\end{align}
+Expanding
+\begin{align}
+R_t(x;\eta)=\sum_{n\ge0}c_n(t;\eta)\,\phi_n(x;\eta)
+\label{eq:qvf-ratio-basis-expansion}
+\end{align}
+and inserting \eqref{eq:qvf-jacobi-recurrence} gives the coefficient system
+\begin{align}
+\dot c_n(t;\eta)
+=a_n^{(\eta)}c_{n-1}(t;\eta)
++\big(b_n^{(\eta)}-\mu_t\big)c_n(t;\eta)
++a_{n+1}^{(\eta)}c_{n+1}(t;\eta),
+\qquad
+c_n(0;\eta)=\delta_{n0}.
+\label{eq:qvf-coefficient-transport}
+\end{align}
+Thus the mean-coordinate transport semigroup becomes, in the orthogonal-polynomial basis, a Jacobi-matrix evolution
+\begin{align}
+\partial_t \mathbf c_t=\big(J^{(\eta)}-\mu_t I\big)\mathbf c_t,
+\label{eq:qvf-jacobi-semigroup}
+\end{align}
+where $J^{(\eta)}$ is the tridiagonal matrix with off-diagonal entries $a_n^{(\eta)}$ and diagonal entries $b_n^{(\eta)}$.
+For coefficient weights $\mathbf w_t$ paired against observables in this basis, the backward equation is the transpose system
+\begin{align}
+\partial_t \mathbf w_t=-\big(J^{(\eta)}-\mu_t I\big)^\top\mathbf w_t.
+\label{eq:qvf-jacobi-adjoint}
+\end{align}
+This is the next executable layer after the characteristic flow: the notebook only needs the family-specific Jacobi data from the Hermite, Charlier, Laguerre, Krawtchouk, Meixner, and Meixner--Pollaczek recurrences below. The Krawtchouk/binomial case gives a finite $(N+1)\times(N+1)$ matrix, while the other five families give semi-infinite Jacobi matrices.
 
 \subsubsection{Product linearization of orthogonal polynomials}
 The structural property underlying Wick contractions is product closure (linearization) of an orthogonal polynomial system. Let $\{P_n\}_{n\ge 0}$ be the (Meixner-class)
@@ -480,7 +610,10 @@ This is the MGF of $\mathcal{N}(0,\tau)$, so
 \]
 
 \paragraph{Normalization.}
-The Hermite polynomials are orthogonal with respect to $w(x)=e^{-x^2/2}/\sqrt{2\pi}$,
+The Hermite polynomials are orthogonal with respect to
+\[
+w(x)=\frac{e^{-x^2/2}}{\sqrt{2\pi}},
+\]
 \begin{align}
     \int \dd x\frac{e^{-\frac{x^2}{2}}}{\sqrt{2\pi}}\mathrm{He}_n(x)\mathrm{He}_m(x)=n!\,\delta_{nm}.\label{eq:Hermite-norm}
 \end{align}
@@ -1080,9 +1213,12 @@ K_m(x;p,N)\,K_n(x;p,N)
 with linearization coefficients (here $(a)_j$ is the Pochhammer symbol)
 \begin{align}
 L_{mn}^k
-=\sum_{\ell=0}^{m-k}\ \sum_{j=\max(0,\ell+k-m)}^{\min(n,\ell+k)}
-\frac{(-n)_j\,(-m)_{\ell+k-j}\,(-N)_{\ell+k}\,(-\ell-k)_k}{(-N)_j\,(-N)_{\ell+k-j}\,(\ell+k-j)!\,j!\,k!}
-\;{}_2F_1\!\left(
+\;&=\sum_{\ell=0}^{m-k}\ \sum_{j=\max(0,\ell+k-m)}^{\min(n,\ell+k)}
+\nonumber\\
+&\quad\times
+\frac{(-n)_j\,(-m)_{\ell+k-j}\,(-N)_{\ell+k}\,(-\ell-k)_k}
+{(-N)_j\,(-N)_{\ell+k-j}\,(\ell+k-j)!\,j!\,k!}
+\,{}_2F_1\!\left(
 \begin{matrix}
 \ell+k-j-m,\ -j\\
 \ell+k-j-N
@@ -1092,7 +1228,9 @@ L_{mn}^k
 
 \paragraph{Difference operator.}
 \begin{align}
-\Delta K_n(x;p,N)=K_n(x+1;p,N)-K_n(x;p,N)=-\frac{n}{p}\,K_{n-1}(x;p,N-1)
+\Delta K_n(x;p,N)
+&=K_n(x+1;p,N)-K_n(x;p,N) \\
+&=-\frac{n}{p}\,K_{n-1}(x;p,N-1).
 \end{align}
 \begin{align}
 K_n(x;p,N)=\frac{(-1)^n}{w_p(x)}\,\nabla^n w_p(x).
@@ -1111,10 +1249,11 @@ p(N-n)\,K_{n+1}(x;p,N)
 In terms of the orthonormal basis $\phi_n$, multiplication by $x$ is tridiagonal:
 \begin{align}
 x\,\phi_n
-=
+&=
 \sqrt{p(1-p)(N-n)(n+1)}\,\phi_{n+1}
 +
-\big(pN+(1-2p)n\big)\phi_n
+\big(pN+(1-2p)n\big)\phi_n \\
+&\quad
 +
 \sqrt{p(1-p)(N-n+1)n}\,\phi_{n-1}.
 \end{align}
@@ -1300,6 +1439,8 @@ L^{k}_{mn}
 &=
 \sum_{\ell=0}^{m+n-k}\;
 \sum_{j=\max(0,\ell+k-m)}^{\min(n,\ell+k)}
+\\
+&\quad\times
 \frac{(-n)_j\,(-m)_{\ell+k-j}\,(r)_{\ell+k}\,(-\ell-k)_k}
 {(r)_j\,(r)_{\ell+k-j}\,(\ell+k-j)!\,j!\,k!}\,
 {}_2F_{1}\!\left(
@@ -1483,6 +1624,8 @@ r\log\frac{(2r\kappa)^2+(\eta_1^\ast+2r\alpha)^2}
 &=
 r\log\frac{(2r\kappa)^2+(\eta_1^\ast+2r\alpha)^2}
 {(2r\kappa)^2+(\eta_0^\ast+2r\alpha)^2}
+\nonumber\\
+&\quad
 -\frac{2r\alpha+\eta_0^\ast}{\kappa}
 \left[
 \arctan\!\left(-\frac{\eta_1^\ast+2r\alpha}{2r\kappa}\right)
@@ -2066,7 +2209,8 @@ Thus, for each NEF--QVF family, one should read off the family-adapted data coor
 \begin{table}[p]
 \centering
 \renewcommand{\arraystretch}{1.2}
-%\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3pt}
+\small
 
 \begin{tabularx}{\linewidth}{
 >{\raggedright\arraybackslash}p{2.7cm}
