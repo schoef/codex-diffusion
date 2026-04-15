@@ -1,0 +1,2171 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{amsmath,amssymb,dsfont}
+\usepackage{a4wide}
+\usepackage{xspace}
+\usepackage{lscape}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{tabularx} 
+%\usepackage{bbold}
+\usepackage{braket}
+
+\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=blue,filecolor=cyan,menucolor=red,runcolor=filecolor,urlcolor=blue,bookmarks=true,bookmarksnumbered=true]{hyperref}
+\usepackage{amsthm}
+\usepackage{graphicx}
+
+% --- Theorem-like environments ---
+\numberwithin{equation}{section}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% --- Commands ---
+\newcommand{\Jcal}{\mathcal{J}}
+\newcommand{\bzero}{{\ensuremath{\mathbf{0}}}\xspace}
+\newcommand{\bx}{{\ensuremath{\boldsymbol{x}}}\xspace}
+\newcommand{\bj}{{\ensuremath{\boldsymbol{j}}}\xspace}
+\newcommand{\bg}{{\ensuremath{\boldsymbol{g}}}\xspace}
+
+\newcommand{\br}{{\ensuremath{\boldsymbol{r}}}\xspace}
+\newcommand{\bX}{{\ensuremath{\boldsymbol{X}}}\xspace}
+\newcommand{\bZ}{{\ensuremath{\boldsymbol{Z}}}\xspace}
+\newcommand{\bW}{{\ensuremath{\boldsymbol{W}}}\xspace}
+\newcommand{\bS}{{\ensuremath{\boldsymbol{S}}}\xspace}
+\newcommand{\bs}{{\ensuremath{\boldsymbol{s}}}\xspace}
+\newcommand{\bu}{{\ensuremath{\boldsymbol{u}}}\xspace}
+\newcommand{\bv}{{\ensuremath{\boldsymbol{v}}}\xspace}
+\newcommand{\by}{{\ensuremath{\boldsymbol{y}}}\xspace}
+\newcommand{\bY}{{\ensuremath{\boldsymbol{Y}}}\xspace}
+\newcommand{\R}{\ensuremath{\mathbb{R}}\xspace}
+\newcommand{\1}{\ensuremath{\mathds{1}}\xspace}
+\newcommand{\bz}{\ensuremath{\boldsymbol{z}}\xspace}
+\newcommand{\bn}{\ensuremath{\boldsymbol{\nu}}\xspace}
+\newcommand{\bNabla}{\ensuremath{\boldsymbol{\nabla}}\xspace}
+\newcommand{\bT}{\ensuremath{\boldsymbol{T}}\xspace}
+\newcommand{\beps}{\ensuremath{\boldsymbol{\varepsilon}}\xspace}
+\newcommand{\bJ}{\ensuremath{\boldsymbol{J}}\xspace}
+\newcommand{\dd}{\ensuremath{{\textrm{d}}}\xspace}
+%\newcommand{\dD}{\ensuremath{{\textrm{D}}}\xspace}
+\newcommand{\bt}{{\ensuremath{{\boldsymbol{\theta}}}}\xspace}
+\newcommand{\be}{{\ensuremath{{\boldsymbol{\eta}}}}\xspace}
+\newcommand{\bxi}{{\ensuremath{{\boldsymbol{\xi}}}}\xspace}
+\newcommand{\bm}{{\ensuremath{{\boldsymbol{m}}}}\xspace}
+
+\newcommand{\bpsi}{{\ensuremath{{\boldsymbol{\psi}}}}\xspace}
+\newcommand{\bzeta}{{\ensuremath{{\boldsymbol{\zeta}}}}\xspace}
+\newcommand{\bSigma}{{\ensuremath{\boldsymbol{\Sigma}}}\xspace}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\balpha}{\boldsymbol{\alpha}}
+
+\DeclareRobustCommand{\bone}{\text{\usefont{U}{bbold}{m}{n}1}}
+
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cM}{\mathcal{M}}
+
+\newcommand{\peta}[1]{\ensuremath{\partial^{(\eta)}_{#1}}}   % = \partial / \partial \eta^{#1}
+\newcommand{\pstar}[1]{\ensuremath{\partial^{(\ast)}_{#1}}}  % = \partial / \partial y^{#1} with y^{#1}\equiv \eta^\ast_{#1}
+\newcommand{\eqast}{\mathrel{\stackrel{\ast}{=}}}
+
+\newcommand{\Deta}{\ensuremath{\mathrm{D}^{(\eta)}}}         % covariant derivative symbol on the \eta–chart
+\newcommand{\Dstar}{\ensuremath{\mathrm{D}^{(\ast)}}}        % covariant derivative symbol on the \eta^\ast–chart
+
+
+%\newcommand{\bT}{{\ensuremath{{\boldsymbol{\Theta}}}}\xspace}
+\newcommand{\E}{{\ensuremath{{\mathbb{E}}}}\xspace}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\dD}{D}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
+% Inline graphic-as-character: \glyph[<height>][<raise>]{<name>}
+\usepackage{xparse}
+\NewDocumentCommand{\glyph}{ O{1em} O{-0.2ex} m }{%
+  \raisebox{#2}{\includegraphics[height=#1]{#3}}%
+}
+
+% Your specific commands
+\newcommand{\carrot}{\glyph{figures/carrot}}   % looks for carrot.pdf (or .png/.jpg)
+%\newcommand{\rabbit_in}{\glyph{figures/rabbit_in}}
+%\newcommand{\rabbit_out}{\glyph{figures/rabbit_out}}
+
+% --- Add these in the preamble (before \begin{document}) ---
+\title{A Rabbit-Hole Digger’s Toolkit\\ \small{\emph{An upshot of what everyone knows in a language that nobody speaks}}}
+\author{Robert Sch\"ofbeck\thanks{Austrian Academy of Sciences, \href{mailto:robert.schoefbeck@oeaw.ac.at}{robert.schoefbeck@oeaw.ac.at}}}
+\date{\today}
+
+\begin{document}
+
+\section{Natural exponential families and quadratic variance functions}
+We derive results from the classic paper~\cite{Morris82} from Morris~(1982) and introduce natural exponential families~(NEF) with quadratic variance functions~(QVF). A one-dimensional NEF can be written in the form 
+\begin{align}
+p(x|\eta)=h(x)\exp(\eta x-A(\eta)).
+\end{align}
+If an NEF has a variance function $V(\mu)$ at most quadratic in $\mu$, it will depend on $\eta$ only through the mean and thus be a property of the distribution, not the parameter. In such families, cumulants are extremely constrained and provide a rich mathematical structure.
+
+\subsection{When is Jeffreys prior in the conjugate class?}
+Which prior to choose? If we have no guidance to choose the density on parameter space, we can reasonably argue that the prior should be invariant under parameter transformations. This is the idea of Jeffreys prior. In general, it is not in the conjugate class, hence Jeffreys \emph{posterior} is not of the prior form. In which cases are the requirements compatible?
+
+In an exponential family the Fisher metric in the $\eta$–chart is $g_{ij}\eqast\partial_i\partial_j A(\be)$, hence Jeffreys’ prior is
+\[
+\pi_J(\be)\;\propto\;\sqrt{\det g(\be)}\;\eqast\;\exp\Big(\tfrac12\log\det\bNabla^2 A(\be)\Big).
+\]
+It is uninformative because it is reparameterization invariant.
+It lies in the conjugate class $\pi(\be|\balpha,\beta)\propto\exp(\langle\be,\balpha\rangle-\beta A(\be))$ \emph{iff} the \emph{log–det condition} holds:
+\begin{equation}\label{eq:logdet-condition}
+\tfrac12\log\det\bNabla^2 A(\be)\;=\;\langle\be,\balpha\rangle\;-\;\beta\,A(\be)\;+\;\text{const.}
+\end{equation}
+In one dimension, that is
+\begin{align}
+    \tfrac12\log A''(\eta)=\alpha\,\eta-\beta\,A(\eta)+C,\label{eq:NEF-QVF-DG}
+\end{align}
+which we can differentiate 
+\begin{align}
+\frac{1}{2}\frac{ A^{(3)}(\eta)}{A''(\eta)}=\alpha-\beta\,A'(\eta)=\alpha-\beta\,\eta^\ast(\eta).\label{eq:QVF-triple-diff}
+\end{align}
+and note that on the right hand side there now only appears the mean of the distribution via the 1D mean map $\eta^\ast=A'(\eta)$. The trick is to differentiate the variance $\Var_\eta[T]=A''(\eta)$ with respect to the dual (mean) coordinate, 
+\begin{align}
+    \frac{\dd }{\dd\eta^\ast}\Var_\eta[T]=\frac{\dd }{\dd\eta^\ast}A''(\eta(\eta^\ast))=\frac{\dd A''}{\dd\eta}\left(\frac{\dd\eta^\ast}{\dd\eta}\right)^{-1}=\frac{A^{(3)}(\eta)}{A''(\eta)}.\label{eq:QVF-var}
+\end{align}
+Combining with \eqref{eq:QVF-triple-diff}, we can eliminate the dependence on $A$ altogether and integrating \eqref{eq:QVF-var} allows to express the variance in terms of a quadratic polynomial of the mean,
+\begin{align}
+V(\eta^*)=\Var_{\eta(\eta^\ast)}[T]=A''(\eta(\eta^\ast))=\mu_0+2\alpha\eta^\ast-\beta\eta^\ast{}^2.\label{eq:variance-function}
+\end{align}
+Here, we view the natural parameter as a function of the mean, $\eta(\eta^\ast)$, but of course the gradient (mean) map is invertible.
+We use that to derive a property which is extremely important for developing perturbation theory. Natural Exponential families with quadratic variance functions NEF-QVF have all higher cumulants determined by the lower orders. Denoting higher derivatives in the superscript, we have
+\begin{align}
+A^{(3)}(\eta)&=\frac{\dd A''(\eta)}{\dd\eta}=\frac{\dd V(\eta^\ast)}{\dd\eta^\ast}\frac{\dd\eta^\ast}{\dd\eta}=V'(\eta^\ast)V(\eta^\ast)\nonumber\\
+A^{(4)}(\eta)&=(V''(\eta^\ast)V(\eta^\ast)+(V'(\eta^\ast))^2)V(\eta^\ast).\label{eq:NEF-QVF-cumulants}
+\end{align}
+This implies that all cumulants are determined from the lowest one, $\eta^\ast=A'(\eta)$. When we define perturbation theory as an expansion around a NEF-QVF baseline, we will need to compute expectations of such perturbations. Those higher moments of the test statistic are then expressed via higher cumulants that collapse to $\eta^\ast$ via \eqref{eq:NEF-QVF-cumulants} or the recursive relations found in the classic reference~\cite{Morris82}. In short, NEF-QVF are excellent tractable baselines for perturbation theory.
+
+\subsection{Properties of NEF-QVF}
+We work in one dimension with a natural exponential family (NEF)
+\begin{align}
+p_\eta(x)=\exp(\eta x-A(\eta))\,\nu(\dd x),
+\qquad 
+A(\eta)=\log\int e^{\eta x}\,\nu(\dd x),
+\end{align}
+where $\nu$ is a (fixed) base measure. The dual (mean) coordinate and variance satisfy
+\begin{align}
+\eta^\ast(\eta)=\E_\eta[X]=A'(\eta),
+\qquad 
+\Var_\eta(X)=A''(\eta)=\frac{\dd \eta^\ast}{\dd\eta}.
+\end{align}
+\subsubsection{Quadratic variance function and Bregman divergence}
+In a NEF-QVF we have
+\begin{align}
+A''(\eta)=V(\eta^\ast(\eta))
+\end{align}
+where the QVF is a polynomial of degree $\le 2$,
+\begin{align}
+V(\eta^\ast)=a_0+a_1\,\eta^\ast+a_2\,(\eta^\ast)^2.
+\end{align}
+This property has important consequences: Because
+\begin{align}
+    \dd\eta^\ast=A''(\eta)\dd\eta=V(\eta^\ast)\dd\eta\quad\text{we have}\quad\dd\eta=\frac{\dd\eta^\ast}{V(\eta^\ast)},
+\end{align}
+so
+\begin{align}
+    \eta_1-\eta_0=\int_{\eta_0}^{\eta_1}\dd \eta=\int_{\eta_0^\ast}^{\eta_1^\ast}\frac{\dd\eta^\ast}{V(\eta^\ast)}.
+\end{align}
+Also, $\dd A = A'(\eta)\dd\eta=\eta^\ast\dd\eta$  and, therefore,
+\begin{align}
+    A(\eta_1)-A(\eta_0)=\int_{\eta_0}^{\eta_1}\dd A(\eta)=\int_{\eta_0^\ast}^{\eta_1^\ast}\frac{\eta^\ast}{V(\eta^\ast)}\dd\eta^\ast.
+\end{align}
+The implicit from given by Morris~\cite{Morris82}
+\begin{align}
+    A\left(\int_{\eta^\ast_0}^{\eta^\ast}\frac{\dd\eta^\ast}{V(\eta^\ast)}\right)=\int_{\eta^\ast_0}^{\eta^\ast}\frac{\eta^\ast\dd\eta^\ast}{V(\eta^\ast)}
+\end{align}
+is just beautiful.
+
+With the former two relations, we can rewrite the Bregman divergence as 
+\begin{align}
+    D_A(\eta_1||\eta_0)&=A(\eta_1)-A(\eta_0)-(\eta_1-\eta_0) A'(\eta_0)\nonumber\\
+    &=\int_{\eta_0^\ast}^{\eta_1^\ast}\frac{\eta^\ast-\eta_0^\ast}{V(\eta^\ast)}\dd\eta^\ast.\label{Eq:bregman-qvf}
+\end{align}
+Because $V$ determines the Fisher information, we again see that a QVF has all higher cumulants determined by the second order one. The integral is elementary for any QVF.
+
+\subsubsection{Cumulant generating function}
+A complementary and very useful way to see this closure is through cumulants. The cumulant generating function (CGF) of $X$ under $p_\eta$ is
+\begin{align}
+W_0(j)=\log\E_\eta[e^{jX}]
+=\log\int e^{jx}p_\eta(x)\,\nu(\dd x)
+=A(\eta+j)-A(\eta),
+\label{eq:nef-cgf-shift}
+\end{align}
+with the $r$-th cumulant given by $\kappa_r(\eta)\;=\;W_0^{(r)}(0)\;=\;A^{(r)}(\eta)$.
+It is convenient to express cumulants as functions of the mean coordinate $\mu:=\eta^\ast(\eta)=A'(\eta)$.
+Define $C_r(\mu):=\kappa_r(\eta(\mu))$, where $\eta(\mu)$ is the inverse mean map. Then
+\begin{align}
+C_1(\mu)=\mu,
+\qquad
+C_2(\mu)=V(\mu).
+\end{align}
+Moreover, since $\dd\mu/\dd\eta=A''(\eta)=V(\mu)$, the chain rule gives the identity
+\begin{align}
+\frac{\dd}{\dd\eta}= \frac{\dd\mu}{\dd\eta}\frac{\dd}{\dd\mu}=V(\mu)\frac{\dd}{\dd\mu}.
+\end{align}
+Using $\kappa_r(\mu)=A^{(r)}(\eta(\mu))$ and differentiating once with respect to $\eta$ yields the Morris recursion:
+\begin{align}
+\kappa_{r+1}(\mu)
+=A^{(r+1)}(\eta(\mu))
+=\frac{\dd}{\dd\eta}A^{(r)}(\eta(\mu))
+=V(\mu)\,\frac{\dd}{\dd\mu}\kappa_r(\mu),
+\qquad r\ge 2.
+\label{eq:morris-recursion}
+\end{align}
+In particular, we reproduce the first few cumulants in mean coordinates,
+\begin{align}
+\kappa_1(\mu)=\mu,
+\qquad
+\kappa_2(\mu)=V(\mu),
+\qquad
+\kappa_3(\mu)=V'(\mu)V(\mu),
+\end{align}
+and, more generally,
+\begin{align}
+\kappa_{r+1}(\mu)=V(\mu)\,\frac{\dd}{\dd\mu}\kappa_r(\mu),
+\qquad r\ge 2.\label{eq:cumulant-recursion}
+\end{align}
+Thus, in a NEF-QVF, the entire cumulant tower is generated from $V(\mu)$ by repeated application of the first-order differential operator $V(\mu)\,\partial_\mu$.
+Equivalently, the CGF admits the Taylor expansion around $j=0$,
+\begin{align}
+W_0(j)=A(\eta+j)-A(\eta)
+=\mu\,j+\frac{V(\mu)}{2}j^2+\sum_{r\ge 3}\frac{\kappa_r(\mu)}{r!}\,j^r,
+\label{eq:cgf-cumulant-series}
+\end{align}
+with all higher coefficients fixed recursively by~\eqref{eq:morris-recursion}.
+
+\subsubsection{Riccati flow in mean coordinates}
+In perturbation theory, the NEF-QVF can serve as ``free theories'' to expand around. Hence, it is useful to interpret Morris' relations in terms of the CGF. The NEF shift representation \eqref{eq:nef-cgf-shift} implies that derivatives of the CGF at general $j$
+probe the distribution at the shifted natural parameter $\eta+j$:
+\begin{align}
+W_0'(j)=A'(\eta+j)=:\mu(j),
+\qquad
+W_0''(j)=A''(\eta+j)=\Var_{\eta+j}(X).
+\end{align}
+In a NEF--QVF we have $A''(\eta)=V(A'(\eta))$, and therefore the CGF satisfies the closed second-order ODE
+\begin{align}
+W_0''(j)=V\!\big(W_0'(j)\big),
+\qquad
+W_0(0)=0,
+\qquad
+W_0'(0)=\mu.
+\label{eq:cgf-qvf-ode}
+\end{align}
+Equivalently, the shifted mean $\mu(j):=W_0'(t)$ evolves by the first-order flow
+\begin{align}
+\frac{\dd}{\dd j}\mu(j)=V(\mu(j)),
+\qquad
+\mu(0)=\mu,
+\label{eq:mean-flow-qvf}
+\end{align}
+which is a Riccati equation when $V(\mu)=a_0+a_1\mu+a_2\mu^2$.
+Thus, in a NEF--QVF, the entire family of tilted laws $\{p_{\eta+j}\}_{j}$ is encoded by the single
+ODE \eqref{eq:cgf-qvf-ode} (or \eqref{eq:mean-flow-qvf}) with initial data fixed by the baseline mean.
+
+\subsubsection{Polynomial systems}
+
+The Riccati flow derived in the previous subsection is the ``one-parameter tilt dynamics'' of a NEF in mean
+coordinates: varying the natural parameter by a shift $\eta\mapsto\eta+j$ produces a tilted law whose mean
+$\mu(j)=A'(\eta+j)$ evolves autonomously by $\mu'(j)=V(\mu(j))$, governed by the \emph{quadratic} variance function $V(\mu)$.
+The entire tower of cumulants, and more generally all local expansions in the
+tilt parameter, are determined by repeated application of the first-order operator $V(\mu)\partial_\mu$, Eq.\ \eqref{eq:cumulant-recursion}, and is hence ``integrable'' under exponential tilting.
+
+In NEF--QVF, a polynomial system appears when one asks for an algebraic representation of this integrability
+at the level of likelihood ratios. 
+A polynomial sequence \(\{Q_n(x)\}_{n\ge0}\) is called an \emph{Appell sequence} if
+\begin{align}
+\frac{\dd}{\dd x}Q_n(x)=n\,Q_{n-1}(x),
+\qquad n\ge1,
+\end{align}
+with \(Q_0(x)=1\). Equivalently, its exponential generating function has the form
+\begin{align}
+\sum_{n\ge0}Q_n(x)\frac{t^n}{n!}=g(t)e^{xt},
+\qquad g(0)\neq0.
+\end{align}
+Thus Appell sequences are exactly those polynomial systems that behave under differentiation like monomials. In our setting, for fixed \(\eta\), the Radon--Nikodym derivative of
+the tilted law with respect to the baseline law is
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=e^{-A(\eta+t)+A(\eta)}e^{tx},\label{eq:nef-ratio}
+\end{align}
+so the expansion of the likelihood ratio in the raw tilt variable \(t\) yields an Appell sequence in \(x\) with
+\[
+g(t)=e^{-A(\eta+t)+A(\eta)}.
+\] After a family-dependent reparameterization \(t\mapsto z=z(t)\), the resulting sequence is called a Sheffer sequence,
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\sum_{n\ge 0} P_n(x;\eta)\,z(t)^n.
+\end{align}
+
+For a general NEF there is no reason for these polynomials to be orthogonal with respect to \(p_\eta\), nor to
+satisfy a closed three-term recurrence. The NEF--QVF constraint upgrades this Sheffer structure to an
+orthogonal polynomial system~(OPS) with a three-term recurrence. Among NEFs, the QVF property is precisely
+the condition under which the likelihood-ratio generating function closes onto a classical orthogonal
+polynomial system with a tractable raising/lowering algebra, normal ordering, linearization, and related
+special-function structure.
+
+This equivalence reflects the intersection of two well-known classification results.
+On the probabilistic/statistical side, Morris classified one-dimensional NEF--QVF families into six types, up to affine
+transformations
+\[
+\text{Normal, Poisson, Gamma, Binomial, Negative binomial, Generalized hyperbolic secant.}
+\]
+On the orthogonal-polynomial side, Meixner classified orthogonal Sheffer polynomials, i.e.\
+those OPS admitting an exponential-type generating function compatible with an exponential-tilting semigroup.
+These two classifications match: {every NEF--QVF carries an OPS in the Meixner class, and conversely the Meixner
+class measures generate NEF--QVF families under exponential tilting. In the language of special functions, these OPS sit
+in the (hypergeometric) Askey scheme: the Meixner class occupies the ``classical'' level where the orthogonality
+measures are stable under tilting and the polynomials satisfy a second-order differential/difference (or imaginary-shift)
+equation. Concretely, the six Morris families correspond to the six Meixner-class OPS:
+\[
+\text{Hermite, Charlier, Laguerre, Krawtchouk, Meixner, Meixner--Pollaczek}.
+\]
+Their place in the Askey scheme also explains the web of limit transitions (e.g.\ binomial $\to$ Poisson $\to$ normal,
+negative binomial $\to$ gamma, etc.), which mirror degenerations of the quadratic variance function.
+
+In what follows, we exploit this structure in the most direct way, starting from \eqref{eq:nef-ratio}, choose a local
+coordinate $z=z(t)$ adapted to each family, and read off the generating function coefficients $P_n(x;\eta)$. The NEF--QVF
+property guarantees that these coefficients are not merely polynomials but an OPS with the Meixner-class algebra, and this
+is what ultimately makes perturbative calculations tractable.
+
+\subsubsection{Product linearization of orthogonal polynomials}
+The structural property underlying Wick contractions is product closure (linearization) of an orthogonal polynomial system. Let $\{P_n\}_{n\ge 0}$ be the (Meixner-class)
+polynomials associated with the NEF at a fixed reference parameter $\eta$ where $P_n$ is of degree $n$. The baseline expectation induces an inner product on polynomials,
+\[
+\langle f,g\rangle \;:=\;\E_\eta\big[f(T)\,g(T)\big],
+\qquad 
+h_n\;:=\;\langle P_n,P_n\rangle_\eta=\E_\eta\big[P_n(T)^2\big].
+\]
+In the Meixner class, $P_n$ is an orthogonal basis.
+
+Then the product of two basis polynomials expands back into the basis:
+\begin{align}
+P_m(T)\,P_n(T)
+=\sum_{k=0}^{m+n} L_{mn}^{\;k}\,P_k(T),
+\label{eq:linearization}
+\end{align}
+with \emph{linearization coefficients} (Gaunt coefficients)
+\begin{align}
+L_{mn}^{k}
+=\frac{\langle P_m P_n,\,P_k\rangle_0}{\langle P_k,P_k\rangle_0}
+=\frac{\E_0\big[P_m(T)\,P_n(T)\,P_k(T)\big]}{\E_0\big[P_k(T)^2\big]}.
+\label{eq:linearization-coeff}
+\end{align}
+following from orthogonal projection. In particular,
+\eqref{eq:linearization} is unique once the normalization of $P_k$ is fixed.
+
+
+Independently of the family, the degree bound in \eqref{eq:linearization} forces $L_{mn}^{k}=0$ for
+$k>m+n$. Moreover, for many symmetric reference laws one also has parity selection rules
+(e.g.\ $L_{mn}^{k}=0$ unless $m+n-k$ is even), but we will not rely on these unless explicitly stated.
+
+In perturbative computations, products of polynomial observables (or of expansions of likelihood ratios)
+appear ubiquitously. Linearization reduces such products to a \emph{single} polynomial expansion, turning
+expectations of products into weighted sums of known moments (typically norms $h_k$ and/or triple products).
+For the Meixner-class systems arising from NEF--QVF, closed forms and fast recursions for
+$L_{mn}^{k}$ are available and can be inserted whenever explicit coefficients are needed.
+
+\subsection{Scaled exponential families}
+
+For asymptotic expansions it is convenient to introduce a scale parameter
+$\tau>0$ multiplying the log-partition function. 
+Using the base-measure from earlier, we define a
+$\tau$-scaled (natural, although the concept is general) exponential family by
+\begin{align}
+p_{\eta,\tau}(x)
+=
+\exp\!\big(\eta x-\tau A(\eta)\big)\,
+h_\tau(\dd x),
+\label{eq:beta-nef}
+\end{align}
+where the base measure $\nu_\tau$ satisfies
+\begin{align}
+\log\int e^{\eta x}\,\nu_\tau(\dd x)
+=
+\tau A(\eta)
+\label{eq:beta-base-measure}
+\end{align}
+and $h_\tau(\dd x)=\dd\nu_\tau/\dd x$.
+
+Because all NEF-QVF are reproductive, the base measure can be expressed by scaling the original measure $\nu$. The scaled measure is $\nu_\tau = \nu^{*\tau}$
+in the sense of repeated convolution, so that
+the log-partition function scales linearly, $A_\tau(\eta)=\tau A(\eta)$.
+The cumulants then scale as
+\begin{align}
+\E_{\eta,\tau}[X] &= \tau A'(\eta),\quad\Var_{\eta,\tau}(X) = \tau A''(\eta),\quad\text{and}\quad\kappa_k = \tau A^{(k)}(\eta).
+\end{align}
+
+We express $\nu^{*\tau}$ as a scaling of $\nu$ for all six  NEF-QVF below.
+
+\subsection{Normal NEF and probabilists' Hermite polynomials}\label{sec:NEF-QVF-Normal}
+\paragraph{Measure, PDF, and QVF.} 
+Take $\nu(\dd x)=\frac{1}{\sqrt{2\pi}\sigma_0}e^{-x^2/(2\sigma_0^2)}\dd x$ on $\R$. Then
+\begin{align}
+A(\eta)
+&=\log\int_\R e^{\eta x}\frac{1}{\sqrt{2\pi}\sigma_0}e^{-x^2/(2\sigma_0^2)}\dd x
+=\frac{\eta^2\sigma_0^2}{2},
+\end{align}
+and
+\begin{align}
+p_\eta(x)
+=\frac{1}{\sqrt{2\pi}\sigma_0}\exp\left(-\frac{(x-\eta\sigma_0^2)^2}{2\sigma_0^2}\right),
+\qquad \eta\in\R.
+\end{align}
+We have
+\begin{align}
+\eta^\ast(\eta)=A'(\eta)=\eta\,\sigma_0^2,
+\qquad 
+A''(\eta)=\sigma_0^2,
+\end{align}
+so $V(\eta^\ast)=\sigma_0^2$ (constant). 
+\paragraph{Bregman divergence.}
+From \eqref{Eq:bregman-qvf}, we get 
+\begin{align}D_A(\eta_1||\eta_0)=\frac{1}{2\sigma_0^2}\left(\eta^\ast_0-\eta^\ast_1\right)^2.
+\end{align}
+\paragraph{Generating function and likelihood epansion.}
+Using \eqref{eq:nef-ratio},
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+&=\exp\left(t x-\frac{(\eta+t)^2-\eta^2}{2}\sigma_0^2\right) \\
+&=\exp\left(t(x-\eta\sigma_0^2)-\frac{t^2\sigma_0^2}{2}\right).
+\end{align}
+Set $z=t\sigma_0$ and $u=(x-\eta\sigma_0^2)/\sigma_0$, so the ratio becomes$
+\exp\left(uz-\frac{z^2}{2}\right)$.
+The generating function of the probabilists' Hermite polynomials $\mathrm{He}_n$ is
+\begin{align}
+\exp\left(uz-\frac{z^2}{2}\right)
+=\sum_{n\ge 0}\mathrm{He}_n(u)\frac{z^n}{n!},
+\end{align}
+hence the NEF coefficient polynomials are
+\begin{align}
+P_n(x;\eta)
+=\mathrm{He}_n\left(\frac{x-\eta\sigma_0^2}{\sigma_0}\right).
+\end{align}
+Finally, the likelihood ratio expands as
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+&=\sum_{n\ge 0}P_n(x;\eta)\frac{z^n}{n!}=\sum_{n\ge 0}\frac{1}{n!}
+\mathrm{He}_n\left(\frac{x-\eta\sigma_0^2}{\sigma_0}\right)
+\left(t\sigma_0\right)^{\!n}.
+\end{align}
+\paragraph{$\tau$-scaled measure.}
+With base measure $\nu(\dd x)=\frac{1}{\sqrt{2\pi}}e^{-x^2/2}\dd x$ we have
+\[
+\int_{\R} e^{\eta x}\,\nu(\dd x)=\exp\!\Big(\frac{\eta^2}{2}\Big),
+\qquad\text{so}\qquad
+A(\eta)=\frac{\eta^2}{2}.
+\]
+The $\tau$--scaled base measure $\nu_\tau$ is defined by $\log\int e^{\eta x}\nu_\tau(\dd x)=\tau A(\eta)$, hence
+\[
+\int_{\R} e^{\eta x}\,\nu_\tau(\dd x)=\exp\!\Big(\frac{\tau\eta^2}{2}\Big).
+\]
+This is the MGF of $\mathcal{N}(0,\tau)$, so
+\[
+\nu_\tau(\dd x)=\frac{1}{\sqrt{2\pi\tau}}\exp\!\Big(-\frac{x^2}{2\tau}\Big)\dd x.
+\]
+
+\paragraph{Normalization.}
+The Hermite polynomials are orthogonal with respect to $w(x)=e^{-x^2/2}/\sqrt{2\pi}$,
+\begin{align}
+    \int \dd x\frac{e^{-\frac{x^2}{2}}}{\sqrt{2\pi}}\mathrm{He}_n(x)\mathrm{He}_m(x)=n!\,\delta_{nm}.\label{eq:Hermite-norm}
+\end{align}
+\paragraph{Linearization formula.}
+The probabilists' Hermite polynomials admit the finite linearization expansion
+\begin{align}
+\mathrm{He}_m(x)\,\mathrm{He}_n(x)=\sum_{k=0}^{\min(m,n)} L^{k}_{mn}\,\mathrm{He}_{m+n-2k}(x),
+\end{align}
+with linearization coefficients
+\begin{align}
+L^{k}_{mn}=k!\binom{m}{k}\binom{n}{k}.
+\end{align}
+\paragraph{Three-term recursion.}
+\begin{align}
+    x\,\mathrm{He}_n(x)=\mathrm{He}_{n+1}(x)+n\,\mathrm{He}_{n-1}(x)\label{eq:hermite-3term}
+\end{align}
+\paragraph{Derivative.}
+\begin{align}
+\frac{\dd}{\dd x}\mathrm{He}_n(x)=n\,\mathrm{He}_{n-1}(x),
+\qquad
+\mathrm{He}_n(x)=(-1)^n\,\frac{1}{w(x)}\,\frac{\dd^n}{\dd x^n}w(x).
+\label{eq:hermite-derivative}
+\end{align}
+\paragraph{Weyl algebra.}
+From \eqref{eq:Hermite-norm}, we define basis vectors
+\begin{align}
+    \phi_n(x)=\frac{1}{\sqrt{n!}}\mathrm{He}_n(x)\quad\text{so that}\quad\langle\phi_n(x),\phi_m(x)\rangle=\delta_{n,m}
+\end{align}
+which we also write as $\braket{n|m}=\delta_{n,m}$.
+Because
+\begin{align}
+    x\phi_n(x)=\frac{1}{\sqrt{n!}}\mathrm{He}_{n+1}+\frac{n}{\sqrt{n!}}\mathrm{He}_{n-1}
+    =\sqrt{n+1}\,\phi_{n+1}(x)+\sqrt{n}\,\phi_{n-1}(x),
+\end{align}
+we have
+\begin{align}
+    x\ket{n}=\sqrt{n+1}\ket{n+1}+\sqrt{n}\ket{n-1}.
+\end{align}
+Define operators $a^\dagger$ and $a$ by their action
+\begin{align}
+    a^\dagger\ket{n}=\sqrt{n+1}\ket{n+1}\quad\text{and}\quad a\ket{n}=\sqrt{n}\ket{n-1},\qquad a\ket{0}=0\label{eq:hermite-ladder}
+\end{align}
+so that
+\begin{align}
+    x=a^\dagger+a.
+\end{align}
+It is straightforward to verify
+\begin{align}
+    aa^\dagger\ket{n}&=(n+1)\ket{n},\\
+    a^\dagger a\ket{n}&=n\ket{n},
+\end{align}
+and thus $[a,a^\dagger]\ket{n}=\ket{n}$ which implies $[a,a^\dagger]=1$.
+
+We define the number operator $N=a^\dagger a$ because $N\ket{n}=n\ket{n}$. We then get, e.g.,
+\begin{align}
+    x^2=(a^\dagger+a)^2=a^2+\big(a^{\dagger}\big)^2+2N+1.
+\end{align}
+From \eqref{eq:hermite-derivative}, it follows that 
+\begin{align}
+    \frac{\dd}{\dd x}\phi_n(x)=\frac{n}{\sqrt{n!}}\mathrm{He}_{n-1}(x)=\sqrt{n}\,\phi_{n-1}(x)
+\end{align}
+so that we have
+\begin{align}
+    a=\frac{\dd}{\dd x}
+\end{align}
+and since $x=a^\dagger+a$,
+\begin{align}
+    a^\dagger=x-\frac{\dd}{\dd x}.
+\end{align}
+
+\paragraph{Hamiltonian.}
+The oscillator's Hamiltonian is 
+\begin{align}
+H=a^\dagger a+\frac{1}{2}=N+\frac{1}{2}
+\end{align}
+and hence $H\ket{n}=\left(n+\frac{1}{2}\right)\ket{n}$.
+In $x$-space this is
+\begin{align}
+    H=(x-\partial_x)\partial_x+\frac{1}{2}=-\partial_x^2+x\partial_x+\frac{1}{2}.
+\end{align}
+
+\paragraph{Schr\"odinger picture.}
+The Hamiltonian differs from the usual Schr\"odinger form $H=\frac{1}{2}(-\partial_x^2+x^2)$ because we constructed the ladder on the space with measure $\nu(\dd x)$ and not the Lebesgue measure. For a physical dimension $x$ we want to absorb the weight by $\psi_n(x)=e^{-x^2/4}\phi_n(x)$ and integrate with respect to $\dd x$.
+
+Let $U$ denote multiplication by the square root of the weight, $(U f)(x)=e^{-x^2/4}f(x)$, so that $\psi_n=U\phi_n$.
+Conjugating the operators gives
+\begin{align}
+    U\,\partial_x\,U^{-1}=\partial_x+\frac{x}{2},\qquad
+    \tilde a:=U a U^{-1}=\partial_x+\frac{x}{2},\qquad
+    \tilde a^\dagger:=U a^\dagger U^{-1}=-\partial_x+\frac{x}{2}.
+\end{align}
+Therefore the conjugated Hamiltonian $\tilde H:=U H U^{-1}=\tilde a^\dagger \tilde a+\frac{1}{2}$ becomes
+\begin{align}
+    \tilde H=-\partial_x^2+\frac{x^2}{4}.
+\end{align}
+After rescaling $x\mapsto \sqrt{2}\,x$, this is the standard Schr\"odinger harmonic oscillator
+\begin{align}
+    \tilde H=\frac{1}{2}\left(-\partial_x^2+x^2\right)
+    = a^\dagger a+\frac{1}{2},
+\end{align}
+with
+\begin{align}
+    a=\frac{1}{\sqrt{2}}\left(x+\partial_x\right),
+    \qquad
+    a^\dagger=\frac{1}{\sqrt{2}}\left(x-\partial_x\right),
+    \qquad
+    [a,a^\dagger]=1.
+\end{align}
+
+\subsection{Poisson NEF and Charlier polynomials}
+\paragraph{Measure, PDF, and QVF.} 
+Take $\nu\{x\}=1/x!$ on $\mathbb{N}_0=\{0,1,2,\dots\}$. Then
+\begin{align}
+A(\eta)=\log\sum_{x\ge 0}\frac{e^{\eta x}}{x!}=e^\eta,
+\end{align}
+and
+\begin{align}
+p_\eta(x)=\exp\!\big(\eta x-e^\eta\big)\frac{1}{x!}
+=\frac{e^{-e^\eta}(e^\eta)^x}{x!},\qquad x\in\mathbb{N}_0,\ \eta\in\R.
+\end{align}
+We have 
+\begin{align}
+\eta^\ast(\eta)=A'(\eta)=e^\eta,\qquad A''(\eta)=e^\eta=\eta^\ast,
+\end{align}
+so $V(\eta^\ast)=\eta^\ast$ (linear). 
+\paragraph{Bregman divergence.}
+From \eqref{Eq:bregman-qvf}, we get 
+\begin{align}
+D_A(\eta_1||\eta_0)=\eta_1^\ast-\eta_0^\ast-\eta_0^\ast\log\frac{\eta_1^\ast}{\eta_0^\ast}.
+\end{align}
+\paragraph{Generating function and likelihood expansion.} 
+From \eqref{eq:nef-ratio},
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\exp\!\big(t x-(e^{\eta+t}-e^\eta)\big)
+=\exp\!\big(t x-\eta^\ast(e^t-1)\big).
+\end{align}
+Let $\lambda=\eta^\ast$ and define the generating variable $z:=-\lambda(e^t-1)$, so that $e^t=1-\frac{z}{\lambda}$. Then
+\begin{align}
+\exp\!\big(t x-\eta^\ast(e^t-1)\big)
+=(1-\tfrac{z}{\lambda})^x e^{z}.
+\end{align}
+The Charlier generating function is
+\begin{align}
+e^{z}(1-\tfrac{z}{\lambda})^x=\sum_{n\ge 0}\frac{C_n(x;\lambda)}{n!}\,z^n,
+\end{align}
+hence $P_n(x;\eta)=C_n(x;\eta^\ast(\eta))$.
+So the likelihood ratio expands as
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\sum_{n\ge 0}P_n(x;\eta)\frac{z^n}{n!}
+=\sum_{n\ge 0}C_n(x;\lambda)\frac{z^n}{n!}
+\;\; \lambda=\eta^\ast(\eta)=e^\eta,\;\; z=-\lambda(e^t-1).
+\end{align}
+
+\paragraph{$\tau$-scaled measure.}
+With base measure $\nu\{x\}=\frac{1}{x!}$ on $\mathbb{N}_0$ we have
+\[
+\sum_{x\ge 0} e^{\eta x}\,\nu\{x\}=\sum_{x\ge 0}\frac{e^{\eta x}}{x!}=\exp(e^\eta),
+\qquad\text{so}\qquad
+A(\eta)=e^\eta.
+\]
+The $\tau$--scaled base measure satisfies $\log\sum_x e^{\eta x}\nu_\tau\{x\}=\tau e^\eta$, i.e.
+\[
+\sum_{x\ge 0} e^{\eta x}\,\nu_\tau\{x\}=\exp(\tau e^\eta)
+=\sum_{x\ge 0}\frac{\tau^x e^{\eta x}}{x!},
+\]
+hence
+\[
+\nu_\tau\{x\}=\frac{\tau^x}{x!},\qquad x\in\mathbb{N}_0.
+\]
+
+\paragraph{Normalization.}
+The Charlier polynomials are orthogonal with respect to the Poisson weight
+\begin{align}
+    w_\lambda(x)=e^{-\lambda}\frac{\lambda^x}{x!}, \qquad \lambda>0,
+\end{align}
+and satisfy
+\begin{align}
+    \sum_{x=0}^\infty e^{-\lambda}\frac{\lambda^x}{x!}\,
+    C_n(x;\lambda)C_m(x;\lambda)
+    = \lambda^n n!\,\delta_{nm}.
+\end{align}
+\paragraph{Linearization formula.}
+We have
+\begin{align}
+C_m(x;\lambda)\,C_n(x;\lambda)
+=\sum_{k=0}^{m+n} L_{mn}^k(\lambda)\,C_k(x;\lambda),
+\end{align}
+where 
+\begin{align}
+L_{mn}^k(\lambda)
+= (-1)^{m+n+k}\sum_{j=0}^{\min(m,n)}
+\binom{m}{j}\binom{n}{j}\binom{j}{m+n-k-j}\,\frac{j!}{\lambda^{j}}
+\end{align}
+with the convention $\binom{j}{r}=0$ if $r\notin\{0,1,\dots,j\}$.
+\paragraph{Three-term recursion.}
+The Charlier polynomials satisfy
+\begin{align}
+    x\,C_n(x;\lambda)
+    = C_{n+1}(x;\lambda)
+    + (n+\lambda)C_n(x;\lambda)
+    + \lambda n\, C_{n-1}(x;\lambda).
+\end{align}
+
+\paragraph{Difference operator.}
+For families with discrete support, we define the backward and forward differences by
+\begin{align}
+(\nabla f)(x)=f(x)-f(x-1),
+\qquad
+(\Delta f)(x)=f(x+1)-f(x).
+\end{align}
+\begin{align}
+\Delta C_n(x;\lambda)=C_n(x+1;\lambda)-C_n(x;\lambda)=n\,C_{n-1}(x;\lambda),
+\qquad
+C_n(x;\lambda)=\frac{1}{w_\lambda(x)}\,\Delta^n w_\lambda(x).
+\end{align}
+
+\paragraph{Weyl algebra.}
+From the normalization, define basis vectors
+\begin{align}
+    \phi_n(x)=\frac{1}{\sqrt{\lambda^n n!}}\,C_n(x;\lambda)
+    \quad\text{so that}\quad
+    \langle \phi_n,\phi_m\rangle=\delta_{n,m}.
+\end{align}
+Because of the three-term recursion,
+\begin{align}
+    x\phi_n
+    =\sqrt{\lambda(n+1)}\,\phi_{n+1}
+    +(n+\lambda)\phi_n
+    +\sqrt{\lambda n}\,\phi_{n-1}.
+\end{align}
+Define operators $a^\dagger$ and $a$ by
+\begin{align}
+    a^\dagger\ket{n}=\sqrt{\lambda(n+1)}\ket{n+1},
+    \qquad
+    a\ket{n}=\sqrt{\lambda n}\ket{n-1},
+    \qquad
+    a\ket{0}=0.
+\end{align}
+Then 
+\begin{align}
+    aa^\dagger\ket{n} &= \lambda(n+1)\ket{n},\\
+    a^\dagger a\ket{n} &= \lambda n\ket{n},
+\end{align}
+so that
+\begin{align}
+    [a,a^\dagger]=\lambda\,\mathbf{1}.
+\end{align}
+Defining the rescaled operators
+\begin{align}
+    b=\frac{1}{\sqrt{\lambda}}a,
+    \qquad
+    b^\dagger=\frac{1}{\sqrt{\lambda}}a^\dagger,
+\end{align}
+we obtain the Weyl relation
+\begin{align}
+    [b,b^\dagger]=1.
+\end{align}
+
+\paragraph{Birth-death process and Hamiltonian.}
+The forward (master) equation for the probability $P(x,t)$ reads
+\begin{align}
+\partial_t P(x)
+=
+\lambda P(x-1)
++
+(x+1)P(x+1)
+-
+(\lambda+x)P(x).
+\end{align}
+Introducing the canonical Weyl operators
+\begin{align}
+a^\dagger\ket{x}=\ket{x+1},
+\qquad
+a\ket{x}=x\ket{x-1},
+\qquad
+[a,a^\dagger]=1,
+\end{align}
+the master equation can be written in Hamiltonian form
+\begin{align}
+\partial_t \ket{P} = - H \ket{P},
+\end{align}
+with the (non self-adjoint) Hamiltonian
+\begin{align}
+H
+=
+\lambda(1-a^\dagger)
++
+(a^\dagger a - a).
+\end{align}
+The stationary state satisfies $H\ket{P_{\mathrm{stat}}}=0$ and is
+\begin{align}
+P_{\mathrm{stat}}(x)=e^{-\lambda}\frac{\lambda^x}{x!},
+\end{align}
+the Poisson distribution. Thus, just as the Gaussian is the ground state of the harmonic oscillator Hamiltonian, the Poisson law is the ground state of the birth--death Hamiltonian.
+
+\subsection{Gamma NEF and Laguerre polynomials}
+\paragraph{Measure, PDF, and QVF.} 
+Fix $r>0$ and take $\nu(\dd x)=\mathbf{1}_{x>0}\,x^{r-1}\dd x$ on $(0,\infty)$. For $\eta<0$,
+\begin{align}
+\int_0^\infty e^{\eta x}x^{r-1}\dd x=\Gamma(r)(-\eta)^{-r},
+\qquad
+A(\eta)=-r\log(-\eta)+\log\Gamma(r).
+\end{align}
+Thus
+\begin{align}
+p_\eta(x)=\exp\!\big(\eta x-A(\eta)\big)\nu(\dd x)
+=\frac{(-\eta)^r}{\Gamma(r)}\,x^{r-1}e^{\eta x}\,\mathbf{1}_{x>0},
+\qquad \eta<0,
+\end{align}
+i.e. a Gamma law with shape $r$ and rate $-\eta$.
+We have \begin{align}
+\eta^\ast(\eta)=A'(\eta)=\frac{r}{-\eta},\qquad 
+A''(\eta)=\frac{r}{\eta^2}.
+\end{align}
+Eliminate $\eta$ via $\eta=-r/\eta^\ast$ to get
+\begin{align}
+V(\eta^\ast)=A''(\eta)=\frac{(\eta^\ast)^2}{r}.
+\end{align}
+\paragraph{Bregman divergence.}
+
+From \eqref{Eq:bregman-qvf}, we get
+\begin{align}
+    D_A(\eta_1||\eta_0)=r\left(\frac{\eta_0^\ast}{\eta_1^\ast}-1-\log\frac{\eta_0^\ast}{\eta_1^\ast}\right).
+\end{align}
+
+\paragraph{Generating function and likelihood expansion.}
+Let \(\theta=-1/\eta>0\). Then \(-\eta=1/\theta\), and from \eqref{eq:nef-ratio},
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+&=\exp\!\big(t x-(A(\eta+t)-A(\eta))\big)\nonumber\\
+&=e^{t x}\exp\!\Big(-\big[-r\log(-(\eta+t))+r\log(-\eta)\big]\Big)\nonumber\\
+&=e^{t x}\Big(\frac{-(\eta+t)}{-\eta}\Big)^r
+=e^{t x}(1-\theta t)^r .
+\end{align}
+Introduce
+\begin{align}
+z=-\frac{\theta t}{1-\theta t}
+\qquad\Longleftrightarrow\qquad
+t=\frac{z}{\theta(z-1)}=-\frac{z}{\theta(1-z)},
+\qquad
+1-\theta t=\frac{1}{1-z}.
+\end{align}
+Then
+\begin{align}
+e^{t x}(1-\theta t)^r
+=(1-z)^{-r}\exp\!\Big(\frac{x}{\theta}\frac{z}{z-1}\Big).
+\end{align}
+Using the Laguerre generating function
+\begin{align}
+(1-z)^{-(\alpha+1)}\exp\!\Big(y\frac{z}{z-1}\Big)
+=\sum_{n\ge 0}L_n^{(\alpha)}(y)\,z^n,
+\end{align}
+with \(\alpha=r-1\) and \(y=x/\theta\), we obtain
+\begin{align}
+P_n(x;\eta)=L_n^{(r-1)}\!\Big(\frac{x}{\theta}\Big)
+=L_n^{(r-1)}(-\eta x).
+\end{align}
+Finally, the likelihood ratio expands as
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\sum_{n\ge 0}P_n(x;\eta)\,z^n
+=\sum_{n\ge 0}L_n^{(r-1)}\!\Big(\frac{x}{\theta}\Big)\,z^n,
+\qquad
+z=-\frac{\theta t}{1-\theta t},
+\qquad
+\theta=-\frac{1}{\eta}.
+\end{align}
+
+\paragraph{$\tau$-scaled measure.}
+With base measure $\nu(\dd x)=\mathbf{1}_{x>0}\,x^{r-1}\dd x$ and $\eta<0$,
+\[
+\int_0^\infty e^{\eta x}\,x^{r-1}\dd x=\Gamma(r)(-\eta)^{-r},
+\qquad\text{so}\qquad
+A(\eta)=\log\Gamma(r)-r\log(-\eta).
+\]
+The scaling condition $\log\int e^{\eta x}\nu_\tau(\dd x)=\tau A(\eta)$ becomes
+\[
+\int_0^\infty e^{\eta x}\,\nu_\tau(\dd x)=\Gamma(r)^\tau(-\eta)^{-\tau r}.
+\]
+Using $\int_0^\infty e^{\eta x}x^{\tau r-1}\dd x=\Gamma(\tau r)(-\eta)^{-\tau r}$ gives
+\[
+\nu_\tau(\dd x)=\frac{\Gamma(r)^\tau}{\Gamma(\tau r)}\,\mathbf{1}_{x>0}\,x^{\tau r-1}\dd x.
+\]
+
+
+\paragraph{Normalization.}
+The Laguerre polynomials are orthogonal with respect to the Gamma weight
+\begin{align}
+w_{r,\theta}(x)
+=
+\frac{1}{\Gamma(r)\theta^r}
+x^{r-1}e^{-x/\theta}\mathbf{1}_{x>0},
+\qquad r>0,\ \theta>0,
+\end{align}
+and satisfy
+\begin{align}
+\int_0^\infty
+L_n^{(r-1)}\!\Big(\frac{x}{\theta}\Big)
+L_m^{(r-1)}\!\Big(\frac{x}{\theta}\Big)
+w_{r,\theta}(x)\,\dd x
+=
+\frac{\Gamma(n+r)}{n!}\,\delta_{nm}.
+\end{align}
+Defining normalized basis vectors
+\begin{align}
+\phi_n(x)
+=
+\sqrt{\frac{n!}{\Gamma(n+r)}}
+\,L_n^{(r-1)}\!\Big(\frac{x}{\theta}\Big),
+\end{align}
+we obtain an orthonormal system in $L^2((0,\infty),w_{r,\theta}\dd x)$.
+\paragraph{Derivative.}
+\begin{align}
+\frac{\dd}{\dd x}L_n^{(r-1)}(x)=-L_{n-1}^{(r)}(x),
+\end{align}
+\begin{align}
+L_n^{(r-1)}(x)
+=\frac{1}{n!\,w_{r-1}(x)}\,\frac{\dd^n}{\dd x^n}\!\left(x^n\,w_{r-1}(x)\right)
+=\frac{1}{n!}\,x^{-(r-1)}e^{x}\,\frac{\dd^n}{\dd x^n}\!\left(e^{-x}\,x^{n+r-1}\right).
+\end{align}
+\paragraph{Linearization formula (TBC).}
+For fixed $r>0$ (i.e.\ $\alpha=r-1$), products of generalized Laguerre polynomials linearize as
+\begin{align}
+L_m^{(r-1)}\!\Big(\frac{x}{\theta}\Big)\,L_n^{(r-1)}\!\Big(\frac{x}{\theta}\Big)
+=\sum_{k=0}^{m+n} L^{k}_{mn}\;L_k^{(r-1)}\!\Big(\frac{x}{\theta}\Big),
+\end{align}
+with linearization coefficients
+\begin{align}
+L^{k}_{mn}
+=\frac{\binom{m+r-1}{m}\binom{n+r-1}{n}}{(r)_k}
+\sum_{i=0}^{m}\sum_{j=0}^{n}
+\frac{(-m)_i\,(-n)_j\,(r)_{i+j}\,(-i-j)_k}{(r)_i\,(r)_j\,i!\,j!}\,,
+\qquad (k\le m+n),
+\end{align}
+where $(a)_\ell$ denotes the Pochhammer symbol (and $(-i-j)_k=0$ if $i+j<k$).%
+\paragraph{Three-term recursion.}
+The Laguerre polynomials satisfy
+\begin{align}
+(n+1)L_{n+1}^{(r-1)}(y)
+=
+\big(2n+r-y\big)L_n^{(r-1)}(y)
+-
+(n+r-1)L_{n-1}^{(r-1)}(y),
+\end{align}
+where $y=x/\theta$.
+In terms of the orthonormal basis $\phi_n$, multiplication by $x$ is tridiagonal:
+\begin{align}
+\frac{x}{\theta}\,\phi_n(x)
+=
+\sqrt{(n+1)(n+r)}\,\phi_{n+1}(x)
++
+(2n+r)\phi_n(x)
++
+\sqrt{n(n+r-1)}\,\phi_{n-1}(x).
+\end{align}
+\paragraph{$\mathfrak{su}(1,1)$ algebra.}
+Define operators $K_0,K_+,K_-$ on the orthonormal Laguerre basis $\{\ket{n}\}_{n\ge0}$ by
+\begin{align}
+K_0\ket{n} &= \left(n+\frac{r}{2}\right)\ket{n},\\
+K_+\ket{n} &= \sqrt{(n+1)(n+r)}\,\ket{n+1},\\
+K_-\ket{n} &= \sqrt{n(n+r-1)}\,\ket{n-1},
+\qquad K_-\ket{0}=0.
+\end{align}
+These operators satisfy the commutation relations
+\begin{align}
+[K_0,K_\pm]=\pm K_\pm,
+\qquad
+[K_+,K_-]=-2K_0,
+\end{align}
+which define the Lie algebra $\mathfrak{su}(1,1)$.
+The Casimir operator
+\begin{align}
+C=K_0^2-\frac12(K_+K_-+K_-K_+)
+\end{align}
+acts as a scalar,
+\begin{align}
+C=\frac{r}{2}\Big(\frac{r}{2}-1\Big),
+\end{align}
+so this is the positive discrete series representation with Bargmann index $k=r/2$.
+In terms of these generators, multiplication by $x$ becomes
+\begin{align}
+x=\theta\big(K_++K_-+2K_0\big).
+\end{align}
+The radial hydrogen atom (Coulomb problem) is governed by the $\mathfrak{su}(1,1)$ symmetry algebra and Laguerre polynomials.
+
+\subsection{Binomial NEF and Krawtchouk polynomials}
+\paragraph{Measure, PDF, QVF.} Fix $N\in\mathbb{N}_0$ and take $\nu\{x\}=\binom{N}{x}$ on $\{0,1,\dots,N\}$. Then
+\begin{align}
+A(\eta)=\log\sum_{x=0}^N \binom{N}{x}e^{\eta x}=N\log(1+e^\eta),
+\end{align}
+and
+\begin{align}
+p_\eta(x)=\binom{N}{x}\frac{e^{\eta x}}{(1+e^\eta)^N},\qquad x=0,\dots,N,\ \eta\in\R,
+\end{align}
+i.e. $\mathrm{Bin}(N,p)$ with $p=\frac{e^\eta}{1+e^\eta}$.
+
+We have
+\begin{align}
+\eta^\ast(\eta)=A'(\eta)=N\frac{e^\eta}{1+e^\eta}=Np,
+\qquad
+A''(\eta)=Np(1-p).
+\end{align}
+Eliminate $p=\eta^\ast/N$ to obtain
+\begin{align}
+V(\eta^\ast)=\eta^\ast\Big(1-\frac{\eta^\ast}{N}\Big).
+\end{align}
+\paragraph{Bregman divergence.}
+From \eqref{Eq:bregman-qvf}, we get 
+\begin{align}
+D_A(\eta_1||\eta_0)=\eta_0^\ast\log \frac{\eta_0^\ast}{\eta_1^\ast}+(N-\eta_0^\ast)\log \frac{N-\eta_0^\ast}{N-\eta_1^\ast}.
+\end{align}
+
+\paragraph{Generating function and likelihood expansion.} Write $p=\frac{e^\eta}{1+e^\eta}$ and $q=1-p$. Then
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=e^{t x}\Big(\frac{1+e^\eta}{1+e^{\eta+t}}\Big)^N
+=s^x\,(q+ps)^{-N},
+\qquad s=e^t.
+\end{align}
+Define
+\begin{align}
+z=-\frac{p(s-1)}{q+ps}=\frac{p(1-s)}{q+ps},
+\qquad\Longrightarrow\qquad
+1+z=(q+ps)^{-1},\quad 1-\frac{q}{p}z=\frac{s}{q+ps}.
+\end{align}
+Hence
+\begin{align}
+s^x(q+ps)^{-N}
+=\Big(1-\frac{q}{p}z\Big)^x(1+z)^{N-x}.
+\end{align}
+Using the Krawtchouk generating function
+\begin{align}
+\Big(1-\frac{q}{p}z\Big)^x(1+z)^{N-x}
+=\sum_{n=0}^N \binom{N}{n}K_n(x;p,N)\,z^n,
+\end{align}
+we identify $P_n(x;\eta)=\binom{N}{n}K_n(x;p(\eta),N)$ up to the chosen normalization convention.
+Finally, the likelihood ratio expands as
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\sum_{n=0}^N P_n(x;\eta)\,z^n
+=\sum_{n=0}^N \binom{N}{n}K_n(x;p,N)\,z^n,
+\;\; z=\frac{p(1-s)}{q+ps},\;\;s=e^t.
+\end{align}
+
+\paragraph{Scaled measure.}
+With base measure $\nu\{x\}=\binom{N}{x}$ on $\{0,\ldots,N\}$ we have
+\[
+\sum_{x=0}^N e^{\eta x}\binom{N}{x}=(1+e^\eta)^N,
+\qquad\text{so}\qquad
+A(\eta)=N\log(1+e^\eta).
+\]
+For integer $\tau=m\in\mathbb{N}$ the scaling condition $\log\sum_x e^{\eta x}\nu_m\{x\}=mA(\eta)$ reads
+\[
+\sum_x e^{\eta x}\nu_m\{x\}=(1+e^\eta)^{mN}
+=\sum_{x=0}^{mN} e^{\eta x}\binom{mN}{x},
+\]
+hence
+\[
+\nu_m\{x\}=\binom{mN}{x},\qquad x\in\{0,\ldots,mN\}.
+\]
+
+\paragraph{Normalization.}
+The Krawtchouk polynomials are orthogonal with respect to the binomial weight
+\begin{align}
+w_p(x)
+=
+\binom{N}{x} p^x (1-p)^{N-x},
+\qquad x=0,\dots,N,
+\end{align}
+and satisfy
+\begin{align}
+\sum_{x=0}^N
+K_n(x;p,N)\,K_m(x;p,N)\,w_p(x)
+=
+\frac{(-1)^n n!}{(-N)_n}
+\left(\frac{1-p}{p}\right)^n
+\delta_{nm}.
+\end{align}
+Defining normalized basis vectors
+\begin{align}
+\phi_n(x)
+=
+\sqrt{\frac{(-N)_n}{(-1)^n n!}}
+\left(\frac{p}{1-p}\right)^{n/2}
+K_n(x;p,N),
+\end{align}
+we obtain an orthonormal system in $\ell^2(\{0,\dots,N\},w_p)$.
+
+\paragraph{Linearization formula (TBC).}
+For $0<p<1$ and $N\in\mathbb{N}$, the Krawtchouk polynomials satisfy
+\begin{align}
+K_m(x;p,N)\,K_n(x;p,N)
+=\sum_{k=0}^{\min(N,m+n)} L_{mn}^k\,K_k(x;p,N),
+\end{align}
+with linearization coefficients (here $(a)_j$ is the Pochhammer symbol)
+\begin{align}
+L_{mn}^k
+=\sum_{\ell=0}^{m-k}\ \sum_{j=\max(0,\ell+k-m)}^{\min(n,\ell+k)}
+\frac{(-n)_j\,(-m)_{\ell+k-j}\,(-N)_{\ell+k}\,(-\ell-k)_k}{(-N)_j\,(-N)_{\ell+k-j}\,(\ell+k-j)!\,j!\,k!}
+\;{}_2F_1\!\left(
+\begin{matrix}
+\ell+k-j-m,\ -j\\
+\ell+k-j-N
+\end{matrix}
+;\frac{1}{p}\right).
+\end{align}
+
+\paragraph{Difference operator.}
+\begin{align}
+\Delta K_n(x;p,N)=K_n(x+1;p,N)-K_n(x;p,N)=-\frac{n}{p}\,K_{n-1}(x;p,N-1)
+\end{align}
+\begin{align}
+K_n(x;p,N)=\frac{(-1)^n}{w_p(x)}\,\nabla^n w_p(x).
+\end{align}
+\paragraph{Three-term recursion.}
+The Krawtchouk polynomials satisfy
+\begin{align}
+x\,K_n(x;p,N)
+&=
+p(N-n)\,K_{n+1}(x;p,N)
++
+\big(n(1-2p)+pN\big)K_n(x;p,N) \\
+&\quad
++(1-p)n\,K_{n-1}(x;p,N).
+\end{align}
+In terms of the orthonormal basis $\phi_n$, multiplication by $x$ is tridiagonal:
+\begin{align}
+x\,\phi_n
+=
+\sqrt{p(1-p)(N-n)(n+1)}\,\phi_{n+1}
++
+\big(pN+(1-2p)n\big)\phi_n
++
+\sqrt{p(1-p)(N-n+1)n}\,\phi_{n-1}.
+\end{align}
+
+\paragraph{$\mathfrak{su}(2)$ algebra.}
+Define operators $J_0,J_+,J_-$ on the orthonormal Krawtchouk basis
+$\{\ket{n}\}_{n=0}^N$ by
+\begin{align}
+J_0\ket{n} &= \left(n-\frac{N}{2}\right)\ket{n},\\
+J_+\ket{n} &= \sqrt{(N-n)(n+1)}\,\ket{n+1},\\
+J_-\ket{n} &= \sqrt{(N-n+1)n}\,\ket{n-1},
+\qquad J_-\ket{0}=0,\quad J_+\ket{N}=0.
+\end{align}
+These operators satisfy the commutation relations
+\begin{align}
+[J_0,J_\pm]=\pm J_\pm,
+\qquad
+[J_+,J_-]=2J_0,
+\end{align}
+which define the Lie algebra $\mathfrak{su}(2)$.
+The Casimir operator
+\begin{align}
+J^2
+=
+J_0^2+\frac12(J_+J_-+J_-J_+)
+\end{align}
+acts as a scalar,
+\begin{align}
+J^2=\frac{N}{2}\Big(\frac{N}{2}+1\Big),
+\end{align}
+so this is the spin-$j=N/2$ irreducible representation of $\mathfrak{su}(2)$.
+In terms of these generators, multiplication by $x$ can be written as
+\begin{align}
+x
+=
+pN
++
+(1-2p)J_0
++
+\sqrt{p(1-p)}\,(J_+ + J_-),
+\end{align}
+which is the compact analogue of $x=a^\dagger+a$ in the Hermite case and
+$x=\theta(K_++K_-+2K_0)$ in the Laguerre case.
+
+
+\subsection{Negative binomial NEF and Meixner polynomials}
+\paragraph{Measure, PDF, QVF.} Fix $r>0$ and take $\nu\{x\}=(r)_x/x!=\binom{r+x-1}{x}$ on $\mathbb{N}_0$, where $(r)_x=r(r+1)\cdots(r+x-1)$.
+For $\eta<0$,
+\begin{align}
+\sum_{x\ge 0}\frac{(r)_x}{x!}e^{\eta x}=(1-e^\eta)^{-r},
+\qquad
+A(\eta)=-r\log(1-e^\eta).
+\end{align}
+Thus
+\begin{align}
+p_\eta(x)=\exp\big(\eta x-A(\eta)\big)\nu\{x\}
+=\frac{(r)_x}{x!}(1-e^\eta)^r e^{\eta x},
+\qquad x\in\mathbb{N}_0,\ \eta<0,
+\end{align}
+i.e. a negative binomial law with $c=e^\eta\in(0,1)$.
+
+\paragraph{Generating function and likelihood expansion.} With $c=e^\eta$,
+\begin{align}
+\eta^\ast(\eta)=A'(\eta)=\frac{r c}{1-c},\qquad
+A''(\eta)=\frac{r c}{(1-c)^2}.
+\end{align}
+Eliminate $c=\eta^\ast/(r+\eta^\ast)$ to get
+\begin{align}
+V(\eta^\ast)=\eta^\ast+\frac{(\eta^\ast)^2}{r}
+=\eta^\ast\Big(1+\frac{\eta^\ast}{r}\Big).
+\end{align}
+\paragraph{Bregman divergence.}
+From \eqref{Eq:bregman-qvf}, we get 
+\begin{align}
+D_A(\eta_1||\eta_0)=\eta_0^\ast\log \frac{\eta_0^\ast}{\eta_1^\ast}-(r+\eta_0^\ast)\log \frac{r+\eta_0^\ast}{r+\eta_1^\ast}.
+\end{align}
+
+\paragraph{Generating function and likelihood expansion.} From \eqref{eq:nef-ratio},
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=e^{t x}\Big(\frac{1-e^\eta}{1-e^{\eta+t}}\Big)^r
+=s^x\Big(\frac{1-c}{1-cs}\Big)^r,\qquad s=e^t.
+\end{align}
+Define
+\begin{align}
+z=\frac{c(s-1)}{cs-1}=\frac{c(1-s)}{1-cs},
+\qquad\Longrightarrow\qquad
+1-z=\frac{1-c}{1-cs},\quad 1-\frac{z}{c}=s.
+\end{align}
+Hence
+\begin{align}
+s^x\Big(\frac{1-c}{1-cs}\Big)^r
+=\Big(1-\frac{z}{c}\Big)^x(1-z)^{-x-r}.
+\end{align}
+Using the Meixner generating function
+\begin{align}
+\Big(1-\frac{z}{c}\Big)^x(1-z)^{-x-\beta}
+=\sum_{n\ge 0}\frac{(\beta)_n}{n!}\,M_n(x;\beta,c)\,z^n,
+\end{align}
+with $\beta=r$, we conclude that the NEF coefficient polynomials are Meixner:
+\begin{align}
+P_n(x;\eta)=\frac{(r)_n}{n!}\,M_n(x;r,c),\qquad c=e^\eta.
+\end{align}
+Finally, the likelihood ratio expands as
+\begin{align}
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\sum_{n\ge 0}P_n(x;\eta)\,z^n
+=\sum_{n\ge 0}\frac{(r)_n}{n!}\,M_n(x;r,c)\,z^n,
+\qquad c=e^\eta,\quad z=\frac{c(1-s)}{1-cs},\ \ s=e^t.
+\end{align}
+\paragraph{$\tau$-scaled measure.}
+With base measure $\nu\{x\}=\frac{(r)_x}{x!}$ on $\mathbb{N}_0$,
+\[
+\sum_{x\ge 0} \frac{(r)_x}{x!}z^x=(1-z)^{-r},
+\qquad z=e^\eta\in(0,1),
+\]
+so
+\[
+\sum_{x\ge 0} e^{\eta x}\,\nu\{x\}=(1-e^\eta)^{-r},
+\qquad\text{and}\qquad
+A(\eta)=-r\log(1-e^\eta).
+\]
+The scaling $\log\sum_x e^{\eta x}\nu_\tau\{x\}=\tau A(\eta)$ gives
+\[
+\sum_{x\ge 0} e^{\eta x}\,\nu_\tau\{x\}=(1-e^\eta)^{-\tau r}
+=\sum_{x\ge 0}\frac{(\tau r)_x}{x!}e^{\eta x},
+\]
+hence
+\[
+\nu_\tau\{x\}=\frac{(\tau r)_x}{x!},\qquad x\in\mathbb{N}_0.
+\]
+
+\paragraph{Normalization.}
+The Meixner polynomials are orthogonal with respect to the negative binomial weight
+\begin{align}
+w_{r,c}(x)
+=
+\frac{(r)_x}{x!}(1-c)^r c^x,
+\qquad x\in\mathbb{N}_0,\quad r>0,\ 0<c<1,
+\end{align}
+and satisfy
+\begin{align}
+\sum_{x=0}^\infty
+M_n(x;r,c)\,M_m(x;r,c)\,w_{r,c}(x)
+=
+\frac{n!}{(r)_n}
+\left(\frac{c}{1-c}\right)^n
+\delta_{nm}.
+\end{align}
+Defining normalized basis vectors
+\begin{align}
+\phi_n(x)
+=
+\sqrt{\frac{(r)_n}{n!}}
+\left(\frac{1-c}{c}\right)^{n/2}
+M_n(x;r,c),
+\end{align}
+we obtain an orthonormal system in $\ell^2(\mathbb{N}_0,w_{r,c})$.
+\paragraph{Difference operator.}
+The Meixner polynomials satisfy the lowering relation
+\begin{align}
+\Delta M_n(x;r,c)
+=
+M_n(x+1;r,c)-M_n(x;r,c)
+=
+\frac{c-1}{c}\,\frac{n}{r}\,M_{n-1}(x;r+1,c),
+\end{align}
+and the Rodrigues-type (measure-differentiating) identity
+\begin{align}
+M_n(x;r,c)
+=
+\frac{1}{w_{r,c}(x)}\,\nabla^n\!\left(w_{r,c}(x)\,\frac{(r+n)_x}{(r)_x}\right).
+\end{align}
+% ---------- Meixner ----------
+\paragraph{Linearization formula.}
+\begin{align}
+M_m(x;r,c)\,M_n(x;r,c)
+&=\sum_{k=0}^{m+n} L^{k}_{mn}\,M_k(x;r,c),
+\end{align}
+with
+\begin{align}
+L^{k}_{mn}
+&=
+\sum_{\ell=0}^{m+n-k}\;
+\sum_{j=\max(0,\ell+k-m)}^{\min(n,\ell+k)}
+\frac{(-n)_j\,(-m)_{\ell+k-j}\,(r)_{\ell+k}\,(-\ell-k)_k}
+{(r)_j\,(r)_{\ell+k-j}\,(\ell+k-j)!\,j!\,k!}\,
+{}_2F_{1}\!\left(
+\begin{matrix}
+-j,\ \ell+k-j-m\\
+\ell+k-j+r
+\end{matrix};\,\frac{c-1}{c}\right).
+\end{align}
+\paragraph{Three-term recursion.}
+The Meixner polynomials satisfy
+\begin{align}
+x\,M_n(x;r,c)
+&=
+\frac{c(n+r)}{1-c} M_{n+1}(x;r,c)
++
+\frac{n+(n+r)c}{1-c} M_n(x;r,c)
++
+\frac{n}{1-c} M_{n-1}(x;r,c).
+\end{align}
+In terms of the orthonormal basis $\phi_n$, multiplication by $x$ is tridiagonal:
+\begin{align}
+x\,\phi_n
+=
+\sqrt{\frac{c(n+1)(n+r)}{(1-c)^2}}\,\phi_{n+1}
++
+\frac{n(1+c)+cr}{1-c}\,\phi_n
++
+\sqrt{\frac{c n(n+r-1)}{(1-c)^2}}\,\phi_{n-1}.
+\end{align}
+\paragraph{$\mathfrak{su}(1,1)$ algebra.}
+Define operators $K_0,K_+,K_-$ on the orthonormal Meixner basis
+$\{\ket{n}\}_{n\ge 0}$ by
+\begin{align}
+K_0\ket{n} &= \left(n+\frac{r}{2}\right)\ket{n},\\
+K_+\ket{n} &= \sqrt{(n+1)(n+r)}\,\ket{n+1},\\
+K_-\ket{n} &= \sqrt{n(n+r-1)}\,\ket{n-1},
+\qquad K_-\ket{0}=0.
+\end{align}
+These operators satisfy the commutation relations
+\begin{align}
+[K_0,K_\pm]=\pm K_\pm,
+\qquad
+[K_+,K_-]=-2K_0,
+\end{align}
+which define the Lie algebra $\mathfrak{su}(1,1)$.
+The Casimir operator
+\begin{align}
+C=K_0^2-\frac12(K_+K_-+K_-K_+)
+\end{align}
+acts as a scalar,
+\begin{align}
+C=\frac{r}{2}\Big(\frac{r}{2}-1\Big).
+\end{align}
+In terms of these generators, multiplication by $x$ can be written as
+\begin{align}
+x
+=
+\frac{\sqrt{c}}{1-c}\,(K_+ + K_-)
++
+\frac{1+c}{1-c}\,K_0
+-
+\frac{r}{2},
+\end{align}
+which reproduces the tridiagonal structure above.
+
+The appearance of the same $\mathfrak{su}(1,1)$ algebra as in the Laguerre case is not accidental:
+both Gamma and negative binomial NEFs have quadratic variance functions with positive curvature,
+leading to the same non-compact symmetry. 
+The difference is that Laguerre provides a continuous realization on $(0,\infty)$,
+whereas Meixner yields a discrete realization on $\mathbb{N}_0$ of the same representation.
+
+\subsection{Generalized hyperbolic secant NEF and Meixner--Pollaczek system}\label{sec:NEF-QVF-GHS}
+\subsubsection{Generic solution}
+We start from the QVF \eqref{eq:variance-function},
+\[
+A''(\eta)=V(\eta^\ast)=\mu_0+2\alpha\,\eta^\ast-\beta\,\eta^\ast{}^2,\qquad \eta^\ast(\eta)=A'(\eta),
+\]
+and consider the case with \emph{negative discriminant} (Morris’ trigonometric branch). Writing the
+discriminant as
+\[
+d=(2\alpha)^2-4\mu_0(-\beta)=4(\alpha^2+\beta\mu_0),
+\]
+the trigonometric branch is $d<0$, i.e.
+\[
+a=-(\alpha^2+\beta\mu_0)>0.
+\]
+Completing the square gives the canonical form
+\begin{align}
+V(\eta^\ast)
+=\mu_0+2\alpha\eta^\ast-\beta\eta^\ast{}^2
+=(-\beta)\Big(\eta^\ast-\frac{\alpha}{\beta}\Big)^2+\frac{a}{-\beta},
+\qquad(\beta<0,\ a>0).\label{eq:V-square-6}
+\end{align}
+Now $\eta^{\ast'}(\eta)=A''(\eta)=V(\eta^\ast(\eta))$ is a Riccati equation. Define the centered mean
+\[
+\tilde\eta^\ast(\eta)=\eta^\ast(\eta)-\frac{\alpha}{\beta},
+\]
+so that by \eqref{eq:V-square-6}
+\[
+\frac{\dd\tilde\eta^\ast}{\dd\eta}=(-\beta)\tilde\eta^\ast{}^2+\frac{a}{-\beta}.
+\]
+With $\kappa=\sqrt{a}>0$ and $\theta=\kappa(\eta-\eta_0)$ (so $\eta_0\in\R$), this integrates to
+\begin{align}
+\tilde\eta^\ast(\eta)
+=\frac{\kappa}{-\beta}\tan\!\big(\theta\big),
+\qquad
+\theta\in\Big(-\frac{\pi}{2},\frac{\pi}{2}\Big),
+\label{eq:eta-star-tan-6}
+\end{align}
+hence the natural-parameter domain is
+\[
+\eta\in\Big(\eta_0-\frac{\pi}{2\kappa},\,\eta_0+\frac{\pi}{2\kappa}\Big).
+\]
+Integrating once more (since $\eta^\ast=A'$) yields the cumulant function
+\begin{align}
+A(\eta)
+=\frac{\alpha}{\beta}\,\eta+\frac{1}{\beta}\log\cos\!\big(\kappa(\eta-\eta_0)\big)+\text{const},
+\qquad
+\eta\in\Big(\eta_0-\frac{\pi}{2\kappa},\,\eta_0+\frac{\pi}{2\kappa}\Big).
+\label{eq:A-sixth-6}
+\end{align}
+It is convenient (and closer to Morris) to introduce the positive parameter
+\[
+r=-\frac{1}{2\beta}>0,
+\]
+so that \eqref{eq:A-sixth-6} becomes
+\[
+A(\eta)
+=-2r\alpha\,\eta-2r\log\cos\!\big(\kappa(\eta-\eta_0)\big)+\text{const}.
+\]
+\paragraph{Bregman divergence (TBC).}
+Let $\eta_i^\ast=A'(\eta_i)$ for $i=0,1$. From
+\[
+\eta^\ast(\eta)
+=
+-2r\alpha-2r\,\kappa\tan\!\big(\kappa(\eta-\eta_0)\big),
+\]
+we obtain
+\[
+\tan\!\big(\kappa(\eta-\eta_0)\big)
+=
+-\frac{\eta^\ast+2r\alpha}{2r\kappa},
+\]
+and therefore
+\[
+\cos\!\big(\kappa(\eta-\eta_0)\big)
+=
+\frac{2r\kappa}{\sqrt{(2r\kappa)^2+(\eta^\ast+2r\alpha)^2}}.
+\]
+Hence, up to an irrelevant additive constant,
+\[
+A(\eta)
+=
+-2r\alpha\,\eta
++r\log\!\Big((2r\kappa)^2+(\eta^\ast)^2+4r\alpha\,\eta^\ast+4r^2\alpha^2\Big).
+\]
+Using
+\[
+\eta_1-\eta_0
+=
+\frac{1}{\kappa}\left[
+\arctan\!\left(-\frac{\eta_1^\ast+2r\alpha}{2r\kappa}\right)
+-
+\arctan\!\left(-\frac{\eta_0^\ast+2r\alpha}{2r\kappa}\right)
+\right],
+\]
+the Bregman divergence
+$
+D_A(\eta_1\|\eta_0)
+=
+A(\eta_1)-A(\eta_0)-\eta_0^\ast(\eta_1-\eta_0)
+$
+becomes
+\begin{align}
+D_A(\eta_1\|\eta_0)
+&=
+r\log\frac{(2r\kappa)^2+(\eta_1^\ast+2r\alpha)^2}
+{(2r\kappa)^2+(\eta_0^\ast+2r\alpha)^2}
+-(2r\alpha+\eta_0^\ast)(\eta_1-\eta_0)
+\nonumber\\
+&=
+r\log\frac{(2r\kappa)^2+(\eta_1^\ast+2r\alpha)^2}
+{(2r\kappa)^2+(\eta_0^\ast+2r\alpha)^2}
+-\frac{2r\alpha+\eta_0^\ast}{\kappa}
+\left[
+\arctan\!\left(-\frac{\eta_1^\ast+2r\alpha}{2r\kappa}\right)
+-
+\arctan\!\left(-\frac{\eta_0^\ast+2r\alpha}{2r\kappa}\right)
+\right].
+\end{align}
+
+In the canonical form $\alpha=0$, $\kappa=\tfrac12$, this simplifies to
+\begin{align}
+D_A(\eta_1\|\eta_0)
+=
+r\log\frac{r^2+(\eta_1^\ast)^2}{r^2+(\eta_0^\ast)^2}
+-2\eta_0^\ast
+\left[
+\arctan\!\left(\frac{\eta_1^\ast}{r}\right)
+-\arctan\!\left(\frac{\eta_0^\ast}{r}\right)
+\right].
+\end{align}
+
+\subsubsection{Probability density function}
+Up to the standard affine changes of statistic and natural parameter, one may take
+\[
+\alpha=0,\qquad \kappa=\frac12,\qquad \eta_0=0,
+\]
+so that
+\[
+A(\eta)=-2r\log\!\big(2\cos(\eta/2)\big),\qquad \eta\in(-\pi,\pi).
+\]
+Then the NEF takes the form
+\begin{align}
+p(x| \eta)
+&=h(x)\exp\!\big(\eta\,x-A(\eta)\big)\notag\\
+&=h(x)\exp\!\Big(\eta\,x+2r\log\!\big(2\cos(\eta/2)\big)\Big)\notag\\
+&=h(x)\,\big(2\cos(\eta/2)\big)^{2r}\,\exp\!\big(\eta\,x\big),
+\qquad \eta\in(-\pi,\pi),
+\label{eq:pdf-ghs-cos}
+\end{align}
+where $h$ is the base factor (the ``carrier'') of the exponential family. In this canonical form,
+\[
+\eta^\ast(\eta)=A'(\eta)=r\tan(\eta/2),
+\qquad
+V(\eta^\ast)=A''(\eta)=\frac{r}{2}\sec^2(\eta/2)=\frac{r}{2}+\frac{\eta^\ast{}^2}{2r}.
+\]
+The full probability density on $\mathbb{R}$ is the
+Meixner--Pollaczek (Morris family~6) density
+\begin{align}
+p(x| \eta)
+=
+\frac{(2\cos(\eta/2))^{2r}}{2\pi\,\Gamma(2r)}
+\left|\Gamma\!\big(r+i x\big)\right|^2
+e^{\eta x},
+\qquad
+\eta\in(-\pi,\pi),
+\quad x\in\mathbb{R}.
+\end{align}
+
+\subsubsection{The hyperbolic branch}
+The same integrated log--det ODE that produced \eqref{eq:A-sixth-6} also has a \emph{hyperbolic} branch.
+Formally, use the analytic continuation $\cosh u=\cos(iu)$, i.e.\ replace $\kappa(\eta-\eta_0)\mapsto i\,\kappa(\eta-\eta_0)$.
+Equivalently, this corresponds to switching the sign in the first integral so that the separation produces $\text{sech}$ instead of $\sec$.
+In that branch one obtains
+\begin{align}
+A(\eta)
+=\frac{\alpha}{\beta}\,\eta-\frac{1}{\beta}\log\cosh\!\big(\kappa(\eta-\eta_0)\big)+\text{const},
+\qquad \eta\in\R,
+\label{eq:A-sixth-cosh}
+\end{align}
+and therefore the associated (hyperbolic) exponential-family form is
+\begin{align}
+p(x| \eta)
+&=h(x)\exp\!\big(\eta\,x-A(\eta)\big)\notag\\
+&\propto h(x)\,
+\frac{\exp\!\big(\eta\,x\big)}{\big[\cosh\!\big(\kappa(\eta-\eta_0)\big)\big]^{2r}},
+\qquad \eta\in\R,
+\label{eq:pdf-ghs-cosh}
+\end{align}
+with the proportionality absorbing the additive constant in $A$. (This is \emph{not} the Morris family~6
+trigonometric NEF--QVF; it is the ``other'' analytic branch of the same ODE.)
+The full density on $\mathbb{R}$ in the hyperbolic branch is
+\begin{align}
+p(x| \eta)
+=
+\frac{2^{2r}}{2\pi\,\Gamma(2r)}
+\frac{\left|\Gamma\!\big(r+i x\big)\right|^2
+\,e^{\eta x}}
+{\big[\cosh\!\big(\kappa(\eta-\eta_0)\big)\big]^{2r}},
+\qquad
+\eta\in\mathbb{R},
+\quad x\in\mathbb{R},
+\end{align}
+which corresponds to
+\[
+A(\eta)=\frac{\alpha}{\beta}\eta-\frac{1}{\beta}\log\cosh\!\big(\kappa(\eta-\eta_0)\big).
+\]
+This branch is the analytic continuation of the trigonometric case under
+$\eta\mapsto i\,\kappa(\eta-\eta_0)$ and yields the hyperbolic Meixner-type family.
+
+\subsubsection{The Meixner--Pollaczek polynomial system}
+In the trigonometric (Morris family~6) case, the likelihood--ratio identity cancels $h$:
+\begin{align}
+\frac{p(x| \eta+s)}{p(x| \eta)}
+=\exp\!\Big(s\,x-\big(A(\eta+s)-A(\eta)\big)\Big)
+=\exp\!\big(s\,x\big)\Big(\frac{\cos((\eta+s)/2)}{\cos(\eta/2)}\Big)^{\!2r}.
+\label{eq:LR-ghs}
+\end{align}
+To match this to the Meixner--Pollaczek generating function, set
+\[
+\lambda=r,\qquad y=x,\qquad \phi=\frac{\pi}{2}+\frac{\eta}{2}\in(0,\pi),
+\]
+so that $\cos(\eta/2)=\sin\phi$ and $\cos((\eta+s)/2)=\sin(\phi+s/2)$. Then \eqref{eq:LR-ghs} becomes
+\begin{align}
+\frac{p(x| \eta+s)}{p(x| \eta)}
+=\exp(sy)\Big(\frac{\sin(\phi+s/2)}{\sin\phi}\Big)^{\!2\lambda}.
+\label{eq:LR-ghs-sin}
+\end{align}
+
+\medskip
+\noindent
+In the first step, we choose \(z=z(s)\) to match the \(y\)-dependent factor. Define
+\begin{align}
+z=z(s)=\frac{\sin(s/2)}{\sin(\phi+s/2)}.
+\label{eq:z-of-s}
+\end{align}
+Then the identity
+\begin{align}
+\frac{1-e^{-i\phi}z}{1-e^{i\phi}z}=e^{-is}
+\label{eq:phase-identity}
+\end{align}
+holds (a direct one-line verification using $\sin(\phi+s/2)=\sin\phi\cos(s/2)+\cos\phi\sin(s/2)$ and Euler formulas).
+Raising \eqref{eq:phase-identity} to the power $iy$ gives
+\begin{align}
+\Big(\frac{1-e^{-i\phi}z}{1-e^{i\phi}z}\Big)^{iy}=e^{sy}.
+\label{eq:match-exp}
+\end{align}
+
+\medskip
+\noindent
+Next, we match the \(y\)-independent factor.
+Using \eqref{eq:z-of-s},
+\begin{align}
+(1-e^{i\phi}z)(1-e^{-i\phi}z)=1-2z\cos\phi+z^2
+=\Big(\frac{\sin\phi}{\sin(\phi+s/2)}\Big)^{\!2},
+\label{eq:product-identity}
+\end{align}
+again by a straightforward trig simplification. Hence
+\begin{align}
+\big[(1-e^{i\phi}z)(1-e^{-i\phi}z)\big]^{-\lambda}
+=\Big(\frac{\sin(\phi+s/2)}{\sin\phi}\Big)^{\!2\lambda}.
+\label{eq:match-sinpower}
+\end{align}
+
+\medskip
+\noindent
+Multiply \eqref{eq:match-exp} and \eqref{eq:match-sinpower} to obtain
+\begin{align}
+\exp(sy)\Big(\frac{\sin(\phi+s/2)}{\sin\phi}\Big)^{\!2\lambda}
+=
+(1-e^{i\phi}z)^{-\lambda+iy}(1-e^{-i\phi}z)^{-\lambda-iy},
+\qquad z=z(s),
+\label{eq:full-match}
+\end{align}
+which is the Meixner--Pollaczek generating function. Therefore,
+\begin{align}
+(1-e^{i\phi}z)^{-\lambda+iy}(1-e^{-i\phi}z)^{-\lambda-iy}
+=\sum_{n=0}^\infty P_n^{(\lambda)}(y;\phi)\,z^n,
+\qquad |z|<1,
+\label{eq:MP-generating}
+\end{align}
+implies that the coefficient polynomials in the expansion of the NEF likelihood ratio \eqref{eq:LR-ghs}
+are Meixner--Pollaczek:
+\[
+P_n(x;\eta)=P_n^{(r)}\!\Big(x;\,\frac{\pi}{2}+\frac{\eta}{2}\Big).
+\]
+
+A standard explicit hypergeometric representation is
+\begin{align}
+P_n^{(\lambda)}(y;\phi)
+=\frac{(2\lambda)_n}{n!}\,e^{in\phi}\,
+{}_2F_1\!\Big(-n,\ \lambda+iy;\ 2\lambda;\ 1-e^{-2i\phi}\Big),
+\qquad \lambda>0,\ 0<\phi<\pi,
+\label{eq:MP-hypergeom}
+\end{align}
+where $(a)_n$ is the Pochhammer symbol. Expanding ${}_2F_1$ gives the finite sum
+\begin{align}
+P_n^{(\lambda)}(y;\phi)
+=\frac{(2\lambda)_n}{n!}\,e^{in\phi}
+\sum_{k=0}^n \binom{n}{k}\,
+\frac{(\lambda+iy)_k}{(2\lambda)_k}\,
+\big(1-e^{-2i\phi}\big)^k.
+\label{eq:MP-finite-sum}
+\end{align}
+
+Finally, the likelihood ratio admits the polynomial expansion
+\begin{align}
+\frac{p(x| \eta+s)}{p(x| \eta)}
+=\sum_{n=0}^\infty P_n(x;\eta)\,z(s)^n,
+\;\;
+P_n(x;\eta)=P_n^{(r)}\!\Big(x;\,\frac{\pi}{2}+\frac{\eta}{2}\Big),
+\;\;
+z(s)=\frac{\sin(s/2)}{\sin\big(\frac{\pi}{2}+\frac{\eta}{2}+s/2\big)}.
+\end{align}
+
+\paragraph{Dictionary to the \texorpdfstring{$\log\cosh$}{logcosh} solution.}
+The $\log\cos$ and $\log\cosh$ solutions are two analytic branches of the same integrated log--det ODE.
+They are related by the substitution
+\[
+\cosh u=\cos(iu)\qquad\Longleftrightarrow\qquad u\mapsto iu,
+\]
+i.e.\ by analytic continuation $\kappa(\eta-\eta_0)\mapsto i\,\kappa(\eta-\eta_0)$, together with the
+corresponding change of the domain from a strip where $\cos(\cdot)>0$ to all of $\R$ where $\cosh(\cdot)>0$.
+In particular, the Morris family~6 (NEF--GHS) corresponds to the \emph{trigonometric} branch \eqref{eq:pdf-ghs-cos}
+on $\eta\in(-\pi,\pi)$, while the hyperbolic branch \eqref{eq:pdf-ghs-cosh} is the $\log\cosh$ solution.
+
+\paragraph{$\tau$-scaled measure.}
+In canonical form, the base measure is
+\[
+\nu(\dd x)=\frac{1}{2\pi\,\Gamma(2r)}\left|\Gamma(r+i x)\right|^2\dd x,
+\qquad x\in\R.
+\]
+The $\tau$--scaled base measure is therefore obtained by the shape rescaling $r\mapsto \tau r$, i.e.
+\[
+\nu_\tau(\dd x)=\frac{1}{2\pi\,\Gamma(2\tau r)}\left|\Gamma(\tau r+i x)\right|^2\dd x,
+\qquad x\in\R,
+\]
+which indeed yields $\log\int_{\R} e^{\eta x}\nu_\tau(\dd x)=\tau A(\eta)$ on the natural parameter domain.
+
+\paragraph{Difference operator.}
+Define the central (imaginary-shift) difference operator
+\begin{align}
+(T f)(y)=\frac{f(y+i/2)-f(y-i/2)}{i}.
+\end{align}
+Then the Meixner--Pollaczek polynomials satisfy the lowering relation
+\begin{align}
+T\,P_n^{(\lambda)}(y;\phi)=2\sin\phi\;P_{n-1}^{(\lambda+1/2)}(y;\phi),
+\end{align}
+as well as the measure-based raising relation
+\begin{align}
+T\!\Big(\omega(y;\lambda,\phi)\,P_n^{(\lambda)}(y;\phi)\Big)
+=-(n+1)\,\omega(y;\lambda-1/2,\phi)\,P_{n+1}^{(\lambda-1/2)}(y;\phi).
+\end{align}
+Iterating the raising relation yields the Rodrigues-type (measure-differentiating) identity
+\begin{align}
+P_n^{(\lambda)}(y;\phi)
+=
+\frac{(-1)^n}{n!\,\omega(y;\lambda,\phi)}\,
+T^n\!\big(\omega(y;\lambda+n/2,\phi)\big).
+\end{align}
+
+\paragraph{Normalization.}
+The Meixner--Pollaczek polynomials are orthogonal on $\mathbb{R}$ with respect to the weight
+\begin{align}
+w_{\lambda,\phi}(y)
+=
+\frac{(2\sin\phi)^{2\lambda}}{2\pi\,\Gamma(2\lambda)}
+\left|\Gamma(\lambda+iy)\right|^2
+e^{(2\phi-\pi)y},
+\qquad \lambda>0,\ 0<\phi<\pi,
+\end{align}
+and satisfy
+\begin{align}
+\int_{-\infty}^{\infty}
+P_n^{(\lambda)}(y;\phi)\,
+P_m^{(\lambda)}(y;\phi)\,
+w_{\lambda,\phi}(y)\,\dd y
+=
+\frac{\Gamma(n+2\lambda)}{n!}\,\delta_{nm}.
+\end{align}
+Defining normalized basis vectors
+\begin{align}
+\psi_n(y)
+=
+\sqrt{\frac{n!}{\Gamma(n+2\lambda)}}
+\,P_n^{(\lambda)}(y;\phi),
+\end{align}
+we obtain an orthonormal system in $L^2(\mathbb{R},w_{\lambda,\phi}\dd y)$.
+\paragraph{Linearization formula.}
+For $\lambda>0$ and $0<\phi<\pi$, the Meixner--Pollaczek polynomials satisfy
+\begin{align}
+P_m^{(\lambda)}(y;\phi)\,P_n^{(\lambda)}(y;\phi)
+=\sum_{k=0}^{m+n} L^k_{mn}\;P_k^{(\lambda)}(y;\phi),
+\end{align}
+with linearization coefficients
+\begin{align}
+L^k_{mn}
+&=
+\sum_{\ell=0}^{m+n-k}\;
+\sum_{j=\max(0,\ell+k-m)}^{\min(n,\ell+k)}\;
+\sum_{s=0}^{\min(m+j-\ell-k,\;j)}
+\frac{(2\lambda)_n(2\lambda)_m}{n!\,m!}\,e^{i\phi(m+n-k)}
+\frac{(-n)_j}{j!\,(2\lambda)_j}\,
+\frac{(-1)^k(\ell+k)!}{(\ell+k-j)!\,s!\,\ell!}\nonumber\\
+&\hspace{3.6em}\times
+\big(1-e^{-2i\phi}\big)^s 
+\frac{(-m)_{\ell+k-j+s}\,(-j)_s\,(k+2\lambda)_\ell}{(2\lambda)_{\ell+k-j+s}}\,,
+\qquad 0\le k\le m+n,
+\end{align}
+where $(a)_t$ denotes the Pochhammer symbol.
+\paragraph{Three-term recursion.}
+The Meixner--Pollaczek polynomials satisfy the recurrence
+\begin{align}
+2y\sin\phi\,P_n^{(\lambda)}(y;\phi)
+&=
+(n+1)\,P_{n+1}^{(\lambda)}(y;\phi)
++
+2(n+\lambda)\cos\phi\,P_n^{(\lambda)}(y;\phi)
+\\
+&\quad
++
+(n+2\lambda-1)\,P_{n-1}^{(\lambda)}(y;\phi).
+\end{align}
+In terms of the orthonormal basis $\psi_n$, multiplication by $x$ is tridiagonal:
+\begin{align}
+x\,\psi_n
+&=
+\frac{\sqrt{(n+1)(n+2\lambda)}}{2\sin\phi}\,\psi_{n+1}
++
+\frac{(n+\lambda)\cos\phi}{\sin\phi}\,\psi_n
++
+\frac{\sqrt{n(n+2\lambda-1)}}{2\sin\phi}\,\psi_{n-1}.
+\end{align}
+
+\paragraph{$\mathfrak{su}(1,1)$ algebra.}
+Define operators $K_0,K_+,K_-$ on the orthonormal basis $\{\ket{n}\}_{n\ge0}$ by
+\begin{align}
+K_0\ket{n}&=\left(n+\lambda\right)\ket{n},\\
+K_+\ket{n}&=\sqrt{(n+1)(n+2\lambda)}\,\ket{n+1},\\
+K_-\ket{n}&=\sqrt{n(n+2\lambda-1)}\,\ket{n-1},
+\qquad K_-\ket{0}=0.
+\end{align}
+These satisfy
+\begin{align}
+[K_0,K_\pm]=\pm K_\pm,
+\qquad
+[K_+,K_-]=-2K_0,
+\end{align}
+which defines $\mathfrak{su}(1,1)$.
+The Casimir operator
+\begin{align}
+C=K_0^2-\frac12(K_+K_-+K_-K_+)
+\end{align}
+acts as the scalar
+\begin{align}
+C=\lambda(\lambda-1),
+\end{align}
+so this is the positive discrete series representation with Bargmann index $\lambda=r$.
+In terms of these generators, multiplication by $x$ can be written as
+\begin{align}
+x
+=
+\frac{1}{2\sin\phi}(K_+ + K_-)
++
+\frac{\cos\phi}{\sin\phi}\,K_0.
+\end{align}
+Thus, as in the Laguerre and Meixner cases, the sixth NEF family realizes the
+$\mathfrak{su}(1,1)$ symmetry; the difference is that here the representation
+is realized on the full line with oscillatory (trigonometric) structure rather
+than on $(0,\infty)$ or $\mathbb{N}_0$.
+
+
+\begin{table}[p]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3.5pt}
+
+\begin{tabularx}{\linewidth}{lXX}
+\toprule
+
+\textbf{Feature} 
+& \textbf{Normal NEF} 
+& \textbf{Poisson NEF}
+\\
+\midrule
+
+Support
+& $x\in\R$
+& $x\in\mathbb{N}_0$
+\\[3pt]
+
+Base measure $\nu$
+& $\nu(\dd x)=\frac{1}{\sqrt{2\pi}\sigma_0}e^{-x^2/(2\sigma_0^2)}\dd x$
+& $\nu\{x\}=\frac{1}{x!}$
+\\[3pt]
+
+Scaled measure $\nu_\tau$
+& $\nu_\tau(\dd x)=\frac{1}{\sqrt{2\pi\tau}\sigma_0}e^{-x^2/(2\tau\sigma_0^2)}\dd x$
+& $\nu_\tau\{x\}=\frac{\tau^x}{x!}$
+\\[3pt]
+
+Density / pmf
+& $p_\eta(x)=\frac{1}{\sqrt{2\pi}\sigma_0}\exp\!\Big(-\frac{(x-\eta\sigma_0^2)^2}{2\sigma_0^2}\Big)$
+& $p_\eta(x)=\exp\!\big(\eta x-e^\eta\big)\frac{1}{x!}$
+\\[3pt]
+
+Natural parameter
+& $\eta\in\R$
+& $\eta\in\R$
+\\[3pt]
+
+Cumulant $A(\eta)$
+& $A(\eta)=\frac{\eta^2\sigma_0^2}{2}$
+& $A(\eta)=e^\eta$
+\\[3pt]
+
+Mean coordinate $\eta^\ast=A'(\eta)$
+& $\eta^\ast=\eta\sigma_0^2$
+& $\eta^\ast=e^\eta$
+\\[3pt]
+
+Variance function $V(\eta^\ast)$
+& $V(\eta^\ast)=\sigma_0^2$
+& $V(\eta^\ast)=\eta^\ast$
+\\[3pt]
+
+Infinitely divisible
+& Yes
+& Yes
+\\[3pt]
+
+Orthogonal polynomials
+& Hermite
+& Charlier
+\\[3pt]
+
+Algebra
+& Heisenberg (Weyl)
+& Heisenberg (Weyl, scaled)
+\\
+
+\midrule
+
+\textbf{Feature} 
+& \textbf{Gamma NEF} 
+& \textbf{Binomial NEF}
+\\
+\midrule
+
+Support
+& $x>0$
+& $x\in\{0,1,\dots,N\}$
+\\[3pt]
+
+Base measure $\nu$
+& $\nu(\dd x)=\mathbf{1}_{x>0}\,x^{r-1}\dd x$
+& $\nu\{x\}=\binom{N}{x}$
+\\[3pt]
+
+Scaled measure $\nu_\tau$
+& $\nu_\tau(\dd x)=\frac{\Gamma(r)^\tau}{\Gamma(\tau r)}\,\mathbf{1}_{x>0}\,x^{\tau r-1}\dd x$
+& $\nu_m\{x\}=\binom{mN}{x}\;(m\in\mathbb{N})$
+\\[3pt]
+
+Density / pmf
+& $p_\eta(x)=\frac{(-\eta)^r}{\Gamma(r)}\,x^{r-1}e^{\eta x}\,\mathbf{1}_{x>0}$
+& $p_\eta(x)=\binom{N}{x}\frac{e^{\eta x}}{(1+e^\eta)^N}$
+\\[3pt]
+
+Natural parameter
+& $\eta<0$
+& $\eta\in\R$
+\\[3pt]
+
+Cumulant $A(\eta)$
+& $A(\eta)=-r\log(-\eta)+\log\Gamma(r)$
+& $A(\eta)=N\log(1+e^\eta)$
+\\[3pt]
+
+Mean coordinate $\eta^\ast=A'(\eta)$
+& $\eta^\ast=\frac{r}{-\eta}$
+& $\eta^\ast=N\frac{e^\eta}{1+e^\eta}$
+\\[3pt]
+
+Variance function $V(\eta^\ast)$
+& $V(\eta^\ast)=\frac{(\eta^\ast)^2}{r}$
+& $V(\eta^\ast)=\eta^\ast\Big(1-\frac{\eta^\ast}{N}\Big)$
+\\[3pt]
+
+Infinitely divisible
+& Yes
+& No
+\\[3pt]
+
+Orthogonal polynomials
+& Laguerre
+& Krawtchouk
+\\[3pt]
+
+Algebra
+& $\mathfrak{su}(1,1)$
+& $\mathfrak{su}(2)$
+\\
+
+\midrule
+
+\textbf{Feature} 
+& \textbf{Negative Binomial NEF} 
+& \textbf{NEF--GHS (Family 6)}
+\\
+\midrule
+
+Support
+& $x\in\mathbb{N}_0$
+& $x\in\R$
+\\[3pt]
+
+Base measure $\nu$
+& $\nu\{x\}=\frac{(r)_x}{x!}$
+& $\nu(\dd x)=\dfrac{1}{2\pi\,\Gamma(2r)}\left|\Gamma(r+i x)\right|^2\,\dd x$
+\\[3pt]
+
+Scaled measure $\nu_\tau$
+& $\nu_\tau\{x\}=\frac{(\tau r)_x}{x!}$
+& $\nu_\tau(\dd x)=\dfrac{1}{2\pi\,\Gamma(2\tau r)}\left|\Gamma(\tau r+i x)\right|^2\,\dd x$
+\\[3pt]
+
+Density / pmf
+& $p_\eta(x)=\frac{(r)_x}{x!}(1-e^\eta)^r e^{\eta x}$
+& $p_\eta(x)=\dfrac{(2\cos(\eta/2))^{2r}}{2\pi\,\Gamma(2r)}\left|\Gamma(r+i x)\right|^2 e^{\eta x}$
+\\[3pt]
+
+Natural parameter
+& $\eta<0$
+& $\eta\in(-\pi,\pi)$
+\\[3pt]
+
+Cumulant $A(\eta)$
+& $A(\eta)=-r\log(1-e^\eta)$
+& $A(\eta)=-2r\log\!\big(2\cos(\eta/2)\big)$
+\\[3pt]
+
+Mean coordinate $\eta^\ast=A'(\eta)$
+& $\eta^\ast=\frac{r e^\eta}{1-e^\eta}$
+& $\eta^\ast=r\tan(\eta/2)$
+\\[3pt]
+
+Variance function $V(\eta^\ast)$
+& $V(\eta^\ast)=\eta^\ast+\frac{(\eta^\ast)^2}{r}$
+& $V(\eta^\ast)=\frac{r}{2}+\frac{(\eta^\ast)^2}{2r}$
+\\[3pt]
+
+Infinitely divisible
+& Yes
+& Yes
+\\[3pt]
+
+Orthogonal polynomials
+& Meixner
+& Meixner--Pollaczek
+\\[3pt]
+
+Algebra
+& $\mathfrak{su}(1,1)$
+& $\mathfrak{su}(1,1)$
+\\
+
+\bottomrule
+\end{tabularx}
+
+\caption{Basic properties of the six univariate NEF--QVF families~\cite{Morris82}.}
+\end{table}
+
+\subsection{Sheffer systems of NEF-QVF}\label{sec:NEF-QVF-Sheffer}
+For ML applications it is useful to separate two family-dependent coordinates.
+The \emph{data coordinate} entering the polynomial basis
+(for the normal family this is the usual standardization).
+Second, there is the \emph{tilt coordinate} \(z=z(t;\eta)\) entering the
+likelihood-ratio generating function.
+For a fixed baseline parameter \(\eta\), we have
+\[
+\frac{p_{\eta+t}(x)}{p_\eta(x)}
+=\exp\!\big(tx-(A(\eta+t)-A(\eta))\big).
+\]
+As a function of the raw tilt parameter \(t\), the likelihood-ratio generating function generates an
+Appell sequence in \(x\). After the family-dependent local reparameterization
+\(t\mapsto z=z(t;\eta)\), this becomes the orthogonal Sheffer generating function
+of the corresponding Meixner-class system.
+
+Thus, for each NEF--QVF family, one should read off the family-adapted data coordinate (\(u,y,\lambda,p,c,\phi\), etc.), the local tilt coordinate \(z=z(t;\eta)\), and the corresponding orthogonal polynomial basis in which the likelihood ratio expands.
+
+\begin{table}[p]
+\centering
+\renewcommand{\arraystretch}{1.2}
+%\setlength{\tabcolsep}{4pt}
+
+\begin{tabularx}{\linewidth}{
+>{\raggedright\arraybackslash}p{2.7cm}
+>{\raggedright\arraybackslash}X
+>{\raggedright\arraybackslash}X
+>{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Family}
+& \textbf{Family parameters}
+& \textbf{Tilt coordinate}
+& $p_{\eta+t}(x)/p_\eta(x)$
+\\
+\midrule
+
+
+\multirow{2}{*}{Normal}
+& $\mu=\eta\sigma_0^2$
+& \multirow{2}{=}{$\displaystyle z=\sigma_0 t$}
+& \multirow{2}{=}{$\displaystyle \sum_{n\ge 0}\mathrm{He}_n(u)\frac{z^n}{n!}$}
+\\
+& $\displaystyle u=\frac{x-\mu}{\sigma_0}$
+&
+&
+\\
+\midrule
+
+Poisson
+& $\lambda=\mu=e^\eta$
+& $\displaystyle z=-\lambda(e^t-1)$
+& $\displaystyle \sum_{n\ge 0}C_n(x;\lambda)\frac{z^n}{n!}$
+\\
+\midrule
+
+\multirow{2}{*}{Gamma}
+& $\displaystyle \theta=-\frac{1}{\eta}>0$
+& \multirow{2}{=}{$\displaystyle z=-\frac{\theta t}{1-\theta t}$}
+& \multirow{2}{=}{$\displaystyle \sum_{n\ge 0}L_n^{(r-1)}(y)\,z^n$}
+\\
+& $\displaystyle y=\frac{x}{\theta}=-\eta x$
+&
+&
+\\
+\midrule
+
+\multirow{3}{*}{Binomial}
+& $\displaystyle p=\frac{e^\eta}{1+e^\eta},$
+& \multirow{3}{=}{$\displaystyle z=\frac{p(1-e^t)}{q+pe^t}$}
+& \multirow{3}{=}{$\displaystyle \sum_{n=0}^{N}\binom{N}{n}K_n(x;p,N)\,z^n$}
+\\
+& $q=1-p$
+&
+&
+\\
+& $\mu=Np$
+&
+&
+\\
+\midrule
+
+\multirow{2}{*}{Neg. binomial}
+& $\displaystyle c=e^\eta=\frac{\mu}{r+\mu}$
+& \multirow{2}{=}{$\displaystyle z=\frac{c(1-e^t)}{1-ce^t}$}
+& \multirow{2}{=}{$\displaystyle \sum_{n\ge 0}\frac{(r)_n}{n!}M_n(x;r,c)\,z^n$}
+\\
+& $\displaystyle \mu=\frac{rc}{1-c}$
+&
+&
+\\
+\midrule
+
+\multirow{2}{*}{NEF--GHS}
+& $\displaystyle \phi=\frac{\pi}{2}+\frac{\eta}{2}$
+& \multirow{2}{=}{$\displaystyle z=\frac{\sin(t/2)}{\sin(\phi+t/2)}$}
+& \multirow{2}{=}{$\displaystyle \sum_{n\ge 0}P_n^{(r)}(x;\phi)\,z^n$}
+\\
+& $\displaystyle \mu=r\tan(\eta/2)$
+&
+&
+\\
+
+\bottomrule
+\end{tabularx}
+
+\caption{The six orthogonal Sheffer systems associated with the six NEF--QVF families.}
+\label{tab:nef-qvf-sheffer}
+\end{table}
+
+The table makes explicit the two distinct family-dependent reparameterizations
+needed in applications. The \emph{data coordinate} is the variable in which the
+orthogonal polynomial system is naturally written; for the normal family this is
+the standardization \(u=(x-\mu)/\sigma_0\). The \emph{tilt coordinate}
+\(z=z(t;\eta)\) is instead the local coordinate in which the likelihood ratio
+admits an orthogonal Sheffer expansion. This is the form most directly useful
+for ML algorithms: the observation \(x\) is first mapped to the family-adapted
+coordinate, and the local parameter shift \(t\) is mapped to \(z\), after which
+the likelihood ratio expands in a fixed orthogonal polynomial basis.
+
+\bibliographystyle{lucas_unsrt}
+
+\bibliography{biblio.bib}
+
+\end{document}
