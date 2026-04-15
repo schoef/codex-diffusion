@@ -1828,6 +1828,13 @@ P_n(x;\eta)=P_n^{(r)}\!\Big(x;\,\frac{\pi}{2}+\frac{\eta}{2}\Big),
 \;\;
 z(s)=\frac{\sin(s/2)}{\sin\big(\frac{\pi}{2}+\frac{\eta}{2}+s/2\big)}.
 \end{align}
+For the Jacobi bridge used in \eqref{eq:qvf-coefficient-transport}, this same parameter choice gives
+\[
+b_n^{(\eta)}=-(n+r)\cot\phi,
+\qquad
+\phi=\frac{\pi}{2}+\frac{\eta}{2},
+\]
+so in particular $b_0^{(\eta)}=-r\cot\phi=r\tan(\eta/2)=\eta^\ast(\eta)=\mu$, as required by the centering identity.
 
 \paragraph{Dictionary to the \texorpdfstring{$\log\cosh$}{logcosh} solution.}
 The $\log\cos$ and $\log\cosh$ solutions are two analytic branches of the same integrated log--det ODE.
@@ -1930,7 +1937,7 @@ The Meixner--Pollaczek polynomials satisfy the recurrence
 2y\sin\phi\,P_n^{(\lambda)}(y;\phi)
 &=
 (n+1)\,P_{n+1}^{(\lambda)}(y;\phi)
-+
+-
 2(n+\lambda)\cos\phi\,P_n^{(\lambda)}(y;\phi)
 \\
 &\quad
@@ -1942,7 +1949,7 @@ In terms of the orthonormal basis $\psi_n$, multiplication by $x$ is tridiagonal
 x\,\psi_n
 &=
 \frac{\sqrt{(n+1)(n+2\lambda)}}{2\sin\phi}\,\psi_{n+1}
-+
+-
 \frac{(n+\lambda)\cos\phi}{\sin\phi}\,\psi_n
 +
 \frac{\sqrt{n(n+2\lambda-1)}}{2\sin\phi}\,\psi_{n-1}.
@@ -1977,7 +1984,7 @@ In terms of these generators, multiplication by $x$ can be written as
 x
 =
 \frac{1}{2\sin\phi}(K_+ + K_-)
-+
+-
 \frac{\cos\phi}{\sin\phi}\,K_0.
 \end{align}
 Thus, as in the Laguerre and Meixner cases, the sixth NEF family realizes the
