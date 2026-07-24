@@ -35,40 +35,39 @@ Figures are written to `artifacts/`, which is intentionally ignored by Git.
 
 ### What the demonstration checks
 
-For a baseline density \(p_0\) and a naturally shifted family member \(q\), the
+For a baseline density $p_0$ and a naturally shifted family member $q$, the
 probability ratio is expanded as
 
-\[
+$$
 \frac{q(x)}{p_0(x)} = \sum_k c_k\phi_k(x).
-\]
+$$
 
-The application computes \(c_k\) in three independent ways:
+The application computes $c_k$ in three independent ways:
 
-1. From the analytic family shift kernel \(\gamma_k\xi^k\).
+1. From the analytic family shift kernel $\gamma_k\xi^k$.
 2. By exact summation or numerical quadrature under the shifted law.
-3. From toy samples using the empirical average of \(\phi_k\).
+3. From toy samples using the empirical average of $\phi_k$.
 
 It then damps the probability modes by
 
-\[
+$$
 c_k(\tau)=e^{-k\tau}c_k
-\]
+$$
 
 and compares the reconstructed density with the exact family member obtained
-by damping the family-specific shift coordinate \(\xi\).
+by damping the family-specific shift coordinate $\xi$.
 
 The second check concerns the product-linearization tensor
 
-\[
-\Lambda_{mnk}
-=
+$$
+\Lambda_{mnk} =
 \mathbb{E}_{p_0}[\phi_m(X)\phi_n(X)\phi_k(X)].
-\]
+$$
 
 The package computes this tensor analytically from the Jacobi recurrence. The
 application estimates the same triple products from an independent baseline
 sample and compares the difference with its Monte Carlo uncertainty. It also
-checks permutation symmetry and \(\Lambda_{0nk}=\delta_{nk}\).
+checks permutation symmetry and $\Lambda_{0nk}=\delta_{nk}$.
 
 ### Reading the output
 
@@ -99,10 +98,10 @@ standard families use `numpy.random.Generator`, while GHS uses an approximate
 inverse-CDF sampler on a dense numerical grid. The latter is adequate for the
 consistency check but is not intended as a production GHS sampler.
 
-## Changing or adding a configuration
+## Changing a family benchmark
 
-Family-specific choices are isolated in configuration factories near the top
-of `shifted_baseline_probability_modes.py`. A configuration specifies:
+The family-specific choices are collected in the explicit `if`/`elif` block at
+the start of `run_demo`. Each branch specifies:
 
 - baseline parameters and natural shift;
 - observation grid and plotting limits;
@@ -111,6 +110,5 @@ of `shifted_baseline_probability_modes.py`. A configuration specifies:
 - numerical tolerances;
 - a demonstration-local sampler.
 
-The projection, damping, \(\Lambda\) checks, output, and plotting code are
-family independent. To add another benchmark, create a configuration factory
-and register it in `CONFIGURATION_FACTORIES`.
+The projection, damping, $\Lambda$ checks, output, and plotting code below that
+block are family independent.
