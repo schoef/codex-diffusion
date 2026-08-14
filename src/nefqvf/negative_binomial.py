@@ -59,6 +59,15 @@ class NegativeBinomialFamily(Family):
     def _ops_parameters(self, params: NegativeBinomialParams) -> tuple[Any, Any]:
         return params.mean, params.r
 
+    def _sample(self, params: NegativeBinomialParams, size, rng) -> np.ndarray:
+        """Draw negative-binomial counts.
+
+        NumPy parameterises the law by the success probability, which is
+        ``r / (r + mean)`` for the mean used here.
+        """
+        r = float(params.r)
+        return rng.negative_binomial(r, r / (r + float(params.mean)), size=size)
+
     def variance(self, params: NegativeBinomialParams) -> np.ndarray:
         """Return ``mean + mean**2 / r``."""
 
@@ -102,7 +111,7 @@ class NegativeBinomialFamily(Family):
     def shift_coordinate(
         self, natural_shift: Any, params: NegativeBinomialParams
     ) -> np.ndarray:
-        """Return the positive-gauge Meixner shift coordinate."""
+        """Return the Meixner shift coordinate."""
 
         shifted = self.shifted_params(params, natural_shift)
         mean, r, shifted_mean = np.broadcast_arrays(params.mean, params.r, shifted.mean)
@@ -111,15 +120,15 @@ class NegativeBinomialFamily(Family):
         return np.asarray((shifted_c - c) / (1.0 - shifted_c))
 
     def from_shift_coordinate(
-        self, xi: Any, params: NegativeBinomialParams
+        self, z: Any, params: NegativeBinomialParams
     ) -> NegativeBinomialParams:
-        """Construct the shifted member from Meixner coordinate ``xi``."""
+        """Construct the shifted member from Meixner coordinate ``z``."""
 
         self._check_type(params)
         self._validate(params)
-        mean, r, xi_array = np.broadcast_arrays(params.mean, params.r, xi)
+        mean, r, z_array = np.broadcast_arrays(params.mean, params.r, z)
         c = mean / (r + mean)
-        shifted_c = (c + xi_array) / (1.0 + xi_array)
+        shifted_c = (c + z_array) / (1.0 + z_array)
         shifted = NegativeBinomialParams(
             r * shifted_c / (1.0 - shifted_c),
             r,
@@ -133,20 +142,20 @@ class NegativeBinomialFamily(Family):
         n_max: int,
         params: NegativeBinomialParams,
     ) -> np.ndarray:
-        """Return normalized positive-gauge Meixner shift coefficients."""
+        """Return normalized Meixner shift coefficients."""
 
         self._validate_ops(params, n_max)
         degree = polynomial_degrees(n_max)
         mean, r = np.broadcast_arrays(params.mean, params.r)
         c = mean / (r + mean)
-        xi = self.shift_coordinate(natural_shift, params)
+        z = self.shift_coordinate(natural_shift, params)
         log_gamma = 0.5 * (
             gammaln(r[..., None] + degree)
             - gammaln(r[..., None])
             - gammaln(degree + 1.0)
             - degree * np.log(c[..., None])
         )
-        return np.exp(log_gamma) * xi[..., None] ** degree
+        return np.exp(log_gamma) * z[..., None] ** degree
 
     def log_affinity(
         self,

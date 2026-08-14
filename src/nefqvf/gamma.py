@@ -13,7 +13,7 @@ from .params import GammaParams
 
 
 class GammaFamily(Family):
-    """Gamma law with fixed shape ``r`` and positive-gauge Laguerre basis.
+    """Gamma law with fixed shape ``r`` and Laguerre basis.
 
     The scale is derived as ``theta = mean / r``. The package rephases the
     standard Laguerre polynomials by ``(-1)**n`` so all Jacobi off-diagonals
@@ -42,6 +42,12 @@ class GammaFamily(Family):
 
     def _ops_parameters(self, params: GammaParams) -> tuple[Any, Any]:
         return params.mean, params.r
+
+    def _sample(self, params: GammaParams, size, rng) -> np.ndarray:
+        """Draw gamma variates at shape ``r`` and scale ``mean / r``."""
+
+        r = float(params.r)
+        return rng.gamma(shape=r, scale=float(params.mean) / r, size=size)
 
     def variance(self, params: GammaParams) -> np.ndarray:
         """Return ``mean**2 / r``."""
@@ -80,32 +86,32 @@ class GammaFamily(Family):
         )
 
     def shift_coordinate(self, natural_shift: Any, params: GammaParams) -> np.ndarray:
-        """Return ``xi = theta * shift / (1 - theta * shift)``."""
+        """Return ``z = theta * shift / (1 - theta * shift)``."""
 
         self.shifted_params(params, natural_shift)
         mean, r, shift = np.broadcast_arrays(params.mean, params.r, natural_shift)
         theta = mean / r
         return np.asarray(theta * shift / (1.0 - theta * shift))
 
-    def from_shift_coordinate(self, xi: Any, params: GammaParams) -> GammaParams:
-        """Construct the shifted member with mean ``mean * (1 + xi)``."""
+    def from_shift_coordinate(self, z: Any, params: GammaParams) -> GammaParams:
+        """Construct the shifted member with mean ``mean * (1 + z)``."""
 
         self._check_type(params)
         self._validate(params)
-        mean, r, xi_array = np.broadcast_arrays(params.mean, params.r, xi)
-        shifted = GammaParams(mean * (1.0 + xi_array), r)
+        mean, r, z_array = np.broadcast_arrays(params.mean, params.r, z)
+        shifted = GammaParams(mean * (1.0 + z_array), r)
         self._validate(shifted)
         return shifted
 
     def shift_coefficients(
         self, natural_shift: Any, n_max: int, params: GammaParams
     ) -> np.ndarray:
-        """Return normalized positive-gauge Laguerre shift coefficients."""
+        """Return normalized Laguerre shift coefficients."""
 
         self._validate_ops(params, n_max)
         degree = polynomial_degrees(n_max)
         _, r = np.broadcast_arrays(params.mean, params.r)
-        xi = self.shift_coordinate(natural_shift, params)
+        z = self.shift_coordinate(natural_shift, params)
         gamma = np.exp(
             0.5
             * (
@@ -114,7 +120,7 @@ class GammaFamily(Family):
                 - gammaln(degree + 1.0)
             )
         )
-        return gamma * xi[..., None] ** degree
+        return gamma * z[..., None] ** degree
 
     def log_affinity(self, params1: GammaParams, params2: GammaParams) -> np.ndarray:
         """Return log affinity for two Gamma members with equal shape."""

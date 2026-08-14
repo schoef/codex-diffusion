@@ -1,4 +1,5 @@
-"""Shared positive-off-diagonal Jacobi recurrence for all six families."""
+"""Shared Jacobi recurrence for all six families, in the positive
+off-diagonal convention."""
 
 from __future__ import annotations
 
@@ -237,7 +238,7 @@ def basis_dot(
 def jacobi_coefficients(
     family: int, n: Any, mean: Any, fixed: Any
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return ``(a_n, b_n)`` in the positive-off-diagonal Jacobi gauge.
+    """Return ``(a_n, b_n)`` in the positive off-diagonal convention.
 
     ``family`` is an internal integer code so the same Numba kernels can serve
     all systems without Python-level dispatch in the recurrence loop.

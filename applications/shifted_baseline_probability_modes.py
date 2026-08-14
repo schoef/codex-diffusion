@@ -18,8 +18,6 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.random import Generator
-from scipy.integrate import cumulative_trapezoid
 
 from nefqvf import (
     GHS,
@@ -44,27 +42,6 @@ FAMILY_NAMES = (
     "negative-binomial",
     "ghs",
 )
-
-
-def _inverse_cdf_sample(
-    family: Any,
-    params: Any,
-    grid: np.ndarray,
-    rng: Generator,
-    size: int,
-) -> np.ndarray:
-    """Draw approximate continuous samples from a numerical inverse CDF.
-
-    This demonstration-only fallback is used for GHS until the package gains
-    a production sampler. ``grid`` must cover enough tail mass for the chosen
-    parameters.
-    """
-
-    probability = family.prob(grid, params)
-    cdf = cumulative_trapezoid(probability, grid, initial=0.0)
-    cdf /= cdf[-1]
-    keep = np.concatenate(([True], np.diff(cdf) > 0.0))
-    return np.interp(rng.random(size), cdf[keep], grid[keep])
 
 
 def _integrate(
@@ -150,7 +127,8 @@ def run_demo(
     if sample_size < 2:
         raise ValueError("sample_size must be at least two")
 
-    # These are the only family-specific choices in the application.
+    # These are the only family-specific choices in the application; the
+    # samplers themselves now live in the package.
     n_max = 8
     linearization_n_max = 3
     taus = (0.0, 0.35, 0.8, 1.5)
@@ -169,13 +147,6 @@ def run_demo(
         projection_atol = 2e-9
         exact_density_atol = 1e-8
 
-        def sample(rng: Generator, params: NormalParams, size: int) -> np.ndarray:
-            return rng.normal(
-                loc=float(params.mean),
-                scale=float(params.sigma),
-                size=size,
-            )
-
     elif name == "poisson":
         display_name = "Poisson / Charlier"
         family = Poisson
@@ -185,9 +156,6 @@ def run_demo(
         discrete = True
         plot_limits = (-0.5, 17.5)
         seed = 23
-
-        def sample(rng: Generator, params: PoissonParams, size: int) -> np.ndarray:
-            return rng.poisson(float(params.mean), size=size)
 
     elif name == "gamma":
         display_name = "Gamma / Laguerre"
@@ -199,13 +167,6 @@ def run_demo(
         plot_limits = (0.0, 15.0)
         seed = 29
         projection_atol = 1e-9
-
-        def sample(rng: Generator, params: GammaParams, size: int) -> np.ndarray:
-            return rng.gamma(
-                shape=float(params.r),
-                scale=float(params.mean) / float(params.r),
-                size=size,
-            )
 
     elif name == "binomial":
         display_name = "Binomial / Krawtchouk"
@@ -219,13 +180,6 @@ def run_demo(
         n_max = int(baseline.N)
         exact_density_atol = 2e-12
 
-        def sample(rng: Generator, params: BinomialParams, size: int) -> np.ndarray:
-            return rng.binomial(
-                int(params.N),
-                float(params.mean) / int(params.N),
-                size=size,
-            )
-
     elif name == "negative-binomial":
         display_name = "Negative binomial / Meixner"
         family = NegativeBinomial
@@ -235,20 +189,6 @@ def run_demo(
         discrete = True
         plot_limits = (-0.5, 24.5)
         seed = 37
-
-        def sample(
-            rng: Generator,
-            params: NegativeBinomialParams,
-            size: int,
-        ) -> np.ndarray:
-            success_probability = float(params.r) / (
-                float(params.r) + float(params.mean)
-            )
-            return rng.negative_binomial(
-                float(params.r),
-                success_probability,
-                size=size,
-            )
 
     elif name == "ghs":
         display_name = "GHS / Meixner-Pollaczek"
@@ -261,16 +201,13 @@ def run_demo(
         seed = 41
         projection_atol = 2e-9
 
-        def sample(rng: Generator, params: GHSParams, size: int) -> np.ndarray:
-            return _inverse_cdf_sample(family, params, grid, rng, size)
-
     else:
         choices = ", ".join(FAMILY_NAMES)
         raise ValueError(f"unknown family {name!r}; choose one of: {choices}")
 
     shifted = family.shifted_params(baseline, natural_shift)
     rng = np.random.default_rng(seed)
-    shifted_samples = sample(rng, shifted, sample_size)
+    shifted_samples = family.sample(shifted, sample_size, rng=rng)
 
     # Project q/p_0 in three independent ways.
     sample_basis = family.basis(shifted_samples, n_max, baseline)
@@ -350,7 +287,7 @@ def run_demo(
     # Independently check Lambda_mnk with samples from the baseline law.
     analytic_lambda = family.linearization_tensor(linearization_n_max, baseline)
     baseline_rng = np.random.default_rng(seed + 10_000)
-    baseline_samples = sample(baseline_rng, baseline, sample_size)
+    baseline_samples = family.sample(baseline, sample_size, rng=baseline_rng)
     sampled_lambda, lambda_error = _sampled_linearization(
         family,
         baseline,
@@ -498,7 +435,7 @@ def run_demo(
         "x",
         color="#b2182b",
         markersize=7,
-        label=r"analytic $\gamma_k\xi^k$",
+        label=r"analytic $\gamma_k z^k$",
     )
     coefficient_axis.axhline(0.0, color="0.5", linewidth=0.7)
     coefficient_axis.set_xlabel("mode k")

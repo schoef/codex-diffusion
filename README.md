@@ -14,9 +14,12 @@ natural exponential families with quadratic variance functions:
 
 The current implementation covers probability evaluation, moments, natural
 parameters, Hellinger affinities, orthonormal-polynomial evaluation, exact
-shift coefficients, and product-linearization tensors. Sampling, diffusion
-kernels, and a JAX backend are later milestones; the demonstration application
-contains local samplers only for its numerical checks.
+shift coefficients, product-linearization tensors, and inverse-CDF sampling.
+Diffusion kernels and a JAX backend are later milestones.
+
+This repository is the reference implementation for the accompanying note on
+amplitude parametrisations of NEF-QVF laws, and reproduces its figures. See
+[Reproducing the figures](#reproducing-the-figures).
 
 ## Installation
 
@@ -87,7 +90,7 @@ degree axis. With `grid=True`, its shape is
 
 ## Polynomial convention
 
-All six bases use the orthonormal positive-Jacobi gauge
+All six bases use the orthonormal positive-positive off-diagonal convention
 
 ```text
 x phi_n(x) = a_(n+1) phi_(n+1)(x) + b_n phi_n(x) + a_n phi_(n-1)(x),
@@ -119,15 +122,39 @@ coefficients of a square-root probability amplitude.
 
 ```text
 src/nefqvf/    Installable numerical package
-applications/ Standalone numerical demonstrations
+applications/ Standalone numerical studies and the figure scripts
 tests/package Package-level tests
 tests/applications/
                End-to-end demonstration tests
 material/      Retained mathematical source material
 ```
 
-See [applications/README.md](applications/README.md) for the current
-probability-mode and linearization demonstration.
+See [applications/README.md](applications/README.md) for what each study does.
+
+## Reproducing the figures
+
+The one-channel amplitude figures of the note are written by a single script.
+It fits every family, selects the truncation by held-out likelihood, and writes
+four PDFs:
+
+```bash
+python -m applications.paper_one_channel --output /path/to/paper/figures/one-channel
+```
+
+This produces `one-channel-fits-1.pdf` through `-3.pdf`, two families to a page,
+and `one-channel-edge.pdf` for the truncated targets. It also prints the table of
+total variations and selected degrees that the note quotes. With no `--output` it
+writes to the location the note uses.
+
+The two-state hidden-Markov figure is produced separately:
+
+```bash
+python -m applications.two_state_hmm --family poisson --plot
+```
+
+Figures elsewhere in the note that show reference densities, activated laws and
+relaxation kernels come from the accompanying Mathematica notebooks and are not
+generated here.
 
 ## Development checks
 
@@ -137,6 +164,7 @@ python -m compileall -q src applications tests
 ruff check src applications tests
 ruff format --check src applications tests
 python -m applications.shifted_baseline_probability_modes --family all --no-plot
+python -m applications.paper_one_channel --output /tmp/figures
 ```
 
 Each family module also has a small protected smoke test:

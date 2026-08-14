@@ -22,7 +22,7 @@ class BinomialFamily(Family):
     """Binomial law with fixed trials ``N`` and Krawtchouk basis.
 
     The standard Krawtchouk polynomials are rephased by ``(-1)**n`` to obtain
-    the package's positive-Jacobi gauge. The basis terminates at degree ``N``.
+    the package's positive-positive off-diagonal convention. The basis terminates at degree ``N``.
     """
 
     family_code = BINOMIAL
@@ -73,6 +73,12 @@ class BinomialFamily(Family):
     def _ops_parameters(self, params: BinomialParams) -> tuple[Any, Any]:
         return params.mean, params.N
 
+    def _sample(self, params: BinomialParams, size, rng) -> np.ndarray:
+        """Draw binomial counts at ``N`` trials and success rate ``mean / N``."""
+
+        trials = int(params.N)
+        return rng.binomial(trials, float(params.mean) / trials, size=size)
+
     def variance(self, params: BinomialParams) -> np.ndarray:
         """Return ``mean * (1 - mean / N)``."""
 
@@ -121,7 +127,7 @@ class BinomialFamily(Family):
     def shift_coordinate(
         self, natural_shift: Any, params: BinomialParams
     ) -> np.ndarray:
-        """Return the positive-gauge Krawtchouk shift coordinate."""
+        """Return the Krawtchouk shift coordinate."""
 
         self.shifted_params(params, natural_shift)
         mean, trials, shift = np.broadcast_arrays(params.mean, params.N, natural_shift)
@@ -130,14 +136,14 @@ class BinomialFamily(Family):
         denominator = 1.0 - probability + probability * exponential_shift
         return np.asarray(probability * (exponential_shift - 1.0) / denominator)
 
-    def from_shift_coordinate(self, xi: Any, params: BinomialParams) -> BinomialParams:
-        """Construct the shifted member from Krawtchouk coordinate ``xi``."""
+    def from_shift_coordinate(self, z: Any, params: BinomialParams) -> BinomialParams:
+        """Construct the shifted member from Krawtchouk coordinate ``z``."""
 
         self._check_type(params)
         self._validate(params)
-        mean, trials, xi_array = np.broadcast_arrays(params.mean, params.N, xi)
+        mean, trials, z_array = np.broadcast_arrays(params.mean, params.N, z)
         probability = mean / trials
-        shifted_probability = probability + (1.0 - probability) * xi_array
+        shifted_probability = probability + (1.0 - probability) * z_array
         shifted = BinomialParams(trials * shifted_probability, trials)
         self._validate(shifted)
         return shifted
@@ -152,14 +158,14 @@ class BinomialFamily(Family):
         mean, trials = np.broadcast_arrays(params.mean, params.N)
         probability = mean / trials
         complement = 1.0 - probability
-        xi = self.shift_coordinate(natural_shift, params)
+        z = self.shift_coordinate(natural_shift, params)
         log_gamma = 0.5 * (
             gammaln(trials[..., None] + 1.0)
             - gammaln(degree + 1.0)
             - gammaln(trials[..., None] - degree + 1.0)
             + degree * np.log(complement[..., None] / probability[..., None])
         )
-        return np.exp(log_gamma) * xi[..., None] ** degree
+        return np.exp(log_gamma) * z[..., None] ** degree
 
     def _maximum_ops_degree(self, params: BinomialParams) -> int:
         """Return the finite Krawtchouk basis degree ``N``."""

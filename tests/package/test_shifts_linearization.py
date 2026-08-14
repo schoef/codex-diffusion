@@ -54,8 +54,8 @@ def test_shift_coordinate_coefficients_and_inverse(
     n_max,
 ):
     shifted = family.shifted_params(baseline, natural_shift)
-    xi = family.shift_coordinate(natural_shift, baseline)
-    reconstructed = family.from_shift_coordinate(xi, baseline)
+    z = family.shift_coordinate(natural_shift, baseline)
+    reconstructed = family.from_shift_coordinate(z, baseline)
     coefficients = family.shift_coefficients(
         natural_shift,
         n_max,

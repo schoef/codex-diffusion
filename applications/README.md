@@ -4,6 +4,22 @@ Applications live outside the installable `nefqvf` package. They exercise the
 public package API and provide reproducible numerical examples without turning
 research workflows into library dependencies.
 
+## Contents
+
+| Module | Purpose |
+| --- | --- |
+| `paper_one_channel` | Writes the one-channel amplitude figures of the note |
+| `amplitude_fit_recovery` | Amplitude fitting on the sphere; the shared fitting core |
+| `amplitude_fit_degree` | Targets, total variation, and the truncation study |
+| `baseline_matching` | Choice of reference law, shift solving, degree selection |
+| `amplitude_fit_landscape` | Great-circle probe of the objective landscape |
+| `amplitude_fit_limits` | Bias floor of a target with a hard edge |
+| `two_state_hmm` | Two-state hidden-Markov benchmark with an exact likelihood |
+| `shifted_baseline_probability_modes` | Probability modes of a shifted baseline |
+
+The one-channel figures are the ones the note cites; see
+[Reproducing the figures](../README.md#reproducing-the-figures).
+
 ## Shifted-baseline probability modes
 
 Run one family and write a diagnostic figure:
@@ -44,7 +60,7 @@ $$
 
 The application computes $c_k$ in three independent ways:
 
-1. From the analytic family shift kernel $\gamma_k\xi^k$.
+1. From the analytic family shift kernel $\gamma_k z^k$.
 2. By exact summation or numerical quadrature under the shifted law.
 3. From toy samples using the empirical average of $\phi_k$.
 
@@ -55,7 +71,7 @@ c_k(\tau)=e^{-k\tau}c_k
 $$
 
 and compares the reconstructed density with the exact family member obtained
-by damping the family-specific shift coordinate $\xi$.
+by damping the family-specific shift coordinate $z$.
 
 The second check concerns the product-linearization tensor
 

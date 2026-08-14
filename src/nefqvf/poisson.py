@@ -16,7 +16,7 @@ class PoissonFamily(Family):
     """Poisson law with an orthonormal Charlier basis.
 
     The public mean is ``mu``, the natural parameter is ``log(mu)``, and the
-    positive-gauge shift coordinate is ``xi = exp(shift) - 1``.
+    shift coordinate is ``z = exp(shift) - 1``.
     """
 
     family_code = POISSON
@@ -41,6 +41,11 @@ class PoissonFamily(Family):
 
     def _ops_parameters(self, params: PoissonParams) -> tuple[Any, Any]:
         return params.mean, 0.0
+
+    def _sample(self, params: PoissonParams, size, rng) -> np.ndarray:
+        """Draw Poisson counts."""
+
+        return rng.poisson(float(params.mean), size=size)
 
     def variance(self, params: PoissonParams) -> np.ndarray:
         """Return the Poisson variance, equal to its mean."""
@@ -86,13 +91,13 @@ class PoissonFamily(Family):
         self.shifted_params(params, natural_shift)
         return np.asarray(np.expm1(natural_shift))
 
-    def from_shift_coordinate(self, xi: Any, params: PoissonParams) -> PoissonParams:
-        """Construct the shifted member with mean ``mean * (1 + xi)``."""
+    def from_shift_coordinate(self, z: Any, params: PoissonParams) -> PoissonParams:
+        """Construct the shifted member with mean ``mean * (1 + z)``."""
 
         self._check_type(params)
         self._validate(params)
-        mean, xi_array = np.broadcast_arrays(params.mean, xi)
-        shifted = PoissonParams(mean * (1.0 + xi_array))
+        mean, z_array = np.broadcast_arrays(params.mean, z)
+        shifted = PoissonParams(mean * (1.0 + z_array))
         self._validate(shifted)
         return shifted
 
@@ -104,11 +109,11 @@ class PoissonFamily(Family):
         self._validate_ops(params, n_max)
         degree = polynomial_degrees(n_max)
         mean = self.mean(params)
-        xi = self.shift_coordinate(natural_shift, params)
+        z = self.shift_coordinate(natural_shift, params)
         gamma = np.exp(
             0.5 * degree * np.log(mean[..., None]) - 0.5 * gammaln(degree + 1.0)
         )
-        return gamma * xi[..., None] ** degree
+        return gamma * z[..., None] ** degree
 
     def log_affinity(
         self, params1: PoissonParams, params2: PoissonParams

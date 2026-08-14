@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import numpy as np
+from numpy.random import Generator
 
 from .broadcasting import (
     broadcast_parameter_values,
@@ -13,6 +14,7 @@ from .broadcasting import (
 )
 from .jacobi import basis, basis_dot, jacobi_coefficients
 from .linearization import linearization_tensor_from_jacobi
+from .sampling import resolve_generator
 
 
 class Family(ABC):
@@ -49,6 +51,10 @@ class Family(ABC):
     @abstractmethod
     def _ops_parameters(self, params: Any) -> tuple[Any, Any]:
         """Return the mean and family-specific fixed Jacobi parameter."""
+
+    @abstractmethod
+    def _sample(self, params: Any, size: Any, rng: Generator) -> np.ndarray:
+        """Draw variates from one family member after public validation."""
 
     def log_prob(self, x: Any, params: Any) -> np.ndarray:
         """Evaluate with ordinary NumPy broadcasting.
@@ -110,6 +116,23 @@ class Family(ABC):
 
         return np.exp(self.log_prob_grid(x, params, chunk_size=chunk_size))
 
+    def sample(
+        self, params: Any, size: Any = None, *, rng: Generator | None = None
+    ) -> np.ndarray:
+        """Draw independent variates from a single family member.
+
+        ``size`` follows the NumPy convention, so ``None`` returns a scalar
+        draw. Parameters must be scalar: batches of members are sampled by
+        calling once per member, which is also how the caller usually wants
+        them grouped.
+        """
+        self._check_type(params)
+        self._validate(params)
+        _, _, batch_shape = broadcast_parameter_values(params)
+        if batch_shape:
+            raise ValueError("sample requires scalar family parameters")
+        return np.asarray(self._sample(params, size, resolve_generator(rng)))
+
     def mean(self, params: Any) -> np.ndarray:
         """Return the broadcast public mean parameter."""
 
@@ -118,9 +141,40 @@ class Family(ABC):
         names, values, _ = broadcast_parameter_values(params)
         return np.asarray(values[names.index("mean")])
 
+    def is_lattice(self, params: Any) -> bool:
+        """Return whether the family lives on the integers.
+
+        Decided by asking the family rather than by tabulating names: a lattice
+        law assigns no mass to a half-integer.
+        """
+        self._check_type(params)
+        self._validate(params)
+        probe = (
+            float(np.floor(float(np.asarray(self.mean(params)).reshape(-1)[0]))) + 0.5
+        )
+        return not bool(np.isfinite(self.log_prob(probe, params)))
+
     @abstractmethod
     def variance(self, params: Any) -> np.ndarray:
-        """Return the analytic variance."""
+        """Return the analytic variance.
+
+        For a NEF-QVF this is the variance function ``V`` evaluated at the
+        mean of ``params``, so it doubles as an evaluator for ``V``.
+        """
+
+    def variance_slope(self, params: Any) -> np.ndarray:
+        """Return ``V'(mean)``, the slope of the variance function.
+
+        No family-specific formula is needed. The diagonal Jacobi coefficient
+        is ``b_n = mean + n V'(mean)`` in every family, so the slope is the
+        per-level increment ``b_1 - b_0``. Together with ``variance`` this is
+        all of ``V`` that a single reference process can see.
+        """
+        self._check_type(params)
+        self._validate_ops(params, 1)
+        mean, fixed = self._ops_parameters(params)
+        _, b = jacobi_coefficients(self.family_code, np.array([0, 1]), mean, fixed)
+        return np.asarray(b[..., 1] - b[..., 0])
 
     @abstractmethod
     def natural_parameter(self, params: Any) -> np.ndarray:
@@ -136,17 +190,18 @@ class Family(ABC):
 
     @abstractmethod
     def shift_coordinate(self, natural_shift: Any, params: Any) -> np.ndarray:
-        """Return the positive-Jacobi-gauge shift coordinate ``xi``."""
+        """Return the shift coordinate ``z`` of the positive off-diagonal
+        convention."""
 
     @abstractmethod
-    def from_shift_coordinate(self, xi: Any, params: Any) -> Any:
-        """Invert ``xi`` at the supplied baseline parameters."""
+    def from_shift_coordinate(self, z: Any, params: Any) -> Any:
+        """Invert ``z`` at the supplied baseline parameters."""
 
     @abstractmethod
     def shift_coefficients(
         self, natural_shift: Any, n_max: int, params: Any
     ) -> np.ndarray:
-        """Return probability-ratio coefficients ``gamma_n xi**n``."""
+        """Return probability-ratio coefficients ``gamma_n z**n``."""
 
     @abstractmethod
     def log_affinity(self, params1: Any, params2: Any) -> np.ndarray:
@@ -158,7 +213,8 @@ class Family(ABC):
         return np.exp(self.log_affinity(params1, params2))
 
     def jacobi_coefficients(self, n: Any, params: Any) -> tuple[np.ndarray, np.ndarray]:
-        """Return positive-gauge recurrence coefficients ``(a_n, b_n)``."""
+        """Return recurrence coefficients ``(a_n, b_n)`` in the positive
+        off-diagonal convention."""
 
         self._check_type(params)
         self._validate_ops(params, 0)

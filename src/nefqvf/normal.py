@@ -18,8 +18,8 @@ class NormalFamily(Family):
     """Normal law with fixed ``sigma`` and orthonormal Hermite basis.
 
     The public mean is ``mu``, the natural parameter is
-    ``eta = mu / sigma**2``, and the positive-gauge shift coordinate is
-    ``xi = sigma * natural_shift``.
+    ``eta = mu / sigma**2``, and the shift coordinate is
+    ``z = sigma * natural_shift``.
     """
 
     family_code = NORMAL
@@ -43,6 +43,11 @@ class NormalFamily(Family):
 
     def _ops_parameters(self, params: NormalParams) -> tuple[Any, Any]:
         return params.mean, params.sigma
+
+    def _sample(self, params: NormalParams, size, rng) -> np.ndarray:
+        """Draw Gaussian variates."""
+
+        return rng.normal(loc=float(params.mean), scale=float(params.sigma), size=size)
 
     def variance(self, params: NormalParams) -> np.ndarray:
         """Return ``sigma**2`` with the full parameter batch shape."""
@@ -79,32 +84,32 @@ class NormalFamily(Family):
         )
 
     def shift_coordinate(self, natural_shift: Any, params: NormalParams) -> np.ndarray:
-        """Return the Hermite shift coordinate ``xi = sigma * shift``."""
+        """Return the Hermite shift coordinate ``z = sigma * shift``."""
 
         shifted = self.shifted_params(params, natural_shift)
         _, sigma, shift = np.broadcast_arrays(shifted.mean, params.sigma, natural_shift)
         return np.asarray(sigma * shift)
 
-    def from_shift_coordinate(self, xi: Any, params: NormalParams) -> NormalParams:
-        """Construct the shifted member from a Hermite coordinate ``xi``."""
+    def from_shift_coordinate(self, z: Any, params: NormalParams) -> NormalParams:
+        """Construct the shifted member from a Hermite coordinate ``z``."""
 
         self._check_type(params)
         self._validate(params)
-        mean, sigma, xi_array = np.broadcast_arrays(params.mean, params.sigma, xi)
-        shifted = NormalParams(mean + sigma * xi_array, sigma)
+        mean, sigma, z_array = np.broadcast_arrays(params.mean, params.sigma, z)
+        shifted = NormalParams(mean + sigma * z_array, sigma)
         self._validate(shifted)
         return shifted
 
     def shift_coefficients(
         self, natural_shift: Any, n_max: int, params: NormalParams
     ) -> np.ndarray:
-        """Return ``xi**n / sqrt(n!)`` through degree ``n_max``."""
+        """Return ``z**n / sqrt(n!)`` through degree ``n_max``."""
 
         self._validate_ops(params, n_max)
         degree = polynomial_degrees(n_max)
-        xi = self.shift_coordinate(natural_shift, params)
+        z = self.shift_coordinate(natural_shift, params)
         gamma = np.exp(-0.5 * gammaln(degree + 1.0))
-        return gamma * xi[..., None] ** degree
+        return gamma * z[..., None] ** degree
 
     def log_affinity(self, params1: NormalParams, params2: NormalParams) -> np.ndarray:
         """Return log affinity for two members with equal ``sigma``."""

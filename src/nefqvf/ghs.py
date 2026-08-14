@@ -10,6 +10,7 @@ from scipy.special import gammaln, loggamma
 from ._family import Family, finite, polynomial_degrees, same_fixed
 from .jacobi import GHS
 from .params import GHSParams
+from .sampling import inverse_cdf_sample, symmetric_grid
 
 _LOG_2PI = np.log(2.0 * np.pi)
 
@@ -45,6 +46,23 @@ class GHSFamily(Family):
 
     def _ops_parameters(self, params: GHSParams) -> tuple[Any, Any]:
         return params.mean, params.r
+
+    def _sample(self, params: GHSParams, size, rng) -> np.ndarray:
+        """Draw GHS variates by inverting a numerically integrated CDF.
+
+        GHS has a density but no elementary variate generator, so the CDF is
+        built on a grid and inverted. The grid spans many standard deviations
+        because the tails decay exponentially rather than being bounded, and
+        ``inverse_cdf_sample`` refuses to proceed if it fails to carry the mass.
+
+        Note that this samples the law itself. It says nothing about time
+        evolution: GHS has no positivity-preserving relaxation kernel, so there
+        is no forward Markov process to draw a noised pair from.
+        """
+        center = float(np.asarray(params.mean))
+        scale = float(np.sqrt(np.asarray(self.variance(params))))
+        grid = symmetric_grid(center, scale, width=45.0, points=400_001)
+        return inverse_cdf_sample(self, params, size, rng, grid=grid)
 
     def variance(self, params: GHSParams) -> np.ndarray:
         """Return ``r / 2 + mean**2 / (2 * r)``."""
@@ -94,18 +112,18 @@ class GHSFamily(Family):
         phi = np.pi / 2.0 + eta / 2.0
         return np.asarray(np.sin(shift / 2.0) / np.sin(phi + shift / 2.0))
 
-    def from_shift_coordinate(self, xi: Any, params: GHSParams) -> GHSParams:
+    def from_shift_coordinate(self, z: Any, params: GHSParams) -> GHSParams:
         """Invert the trigonometric shift coordinate at a baseline."""
 
         self._check_type(params)
         self._validate(params)
-        eta, r, xi_array = np.broadcast_arrays(
-            self.natural_parameter(params), params.r, xi
+        eta, r, z_array = np.broadcast_arrays(
+            self.natural_parameter(params), params.r, z
         )
         phi = np.pi / 2.0 + eta / 2.0
         shifted_phi = np.arctan2(
             np.sin(phi),
-            np.cos(phi) - xi_array,
+            np.cos(phi) - z_array,
         )
         shifted_eta = 2.0 * shifted_phi - np.pi
         return self.from_natural(shifted_eta, r)
@@ -118,13 +136,13 @@ class GHSFamily(Family):
         self._validate_ops(params, n_max)
         degree = polynomial_degrees(n_max)
         _, r = np.broadcast_arrays(params.mean, params.r)
-        xi = self.shift_coordinate(natural_shift, params)
+        z = self.shift_coordinate(natural_shift, params)
         log_gamma = 0.5 * (
             gammaln(2.0 * r[..., None] + degree)
             - gammaln(2.0 * r[..., None])
             - gammaln(degree + 1.0)
         )
-        return np.exp(log_gamma) * xi[..., None] ** degree
+        return np.exp(log_gamma) * z[..., None] ** degree
 
     def log_affinity(self, params1: GHSParams, params2: GHSParams) -> np.ndarray:
         """Return log affinity for members with equal shape ``r``."""
