@@ -131,3 +131,42 @@ def test_unknown_family_is_rejected():
 
     with pytest.raises(ValueError, match="unknown family"):
         run_benchmark("not-a-family")
+
+
+@pytest.mark.parametrize("family_name", FAMILY_NAMES)
+def test_a_single_site_is_the_two_component_mixture(family_name):
+    """At one site the chain has nothing to correlate, so the model collapses to
+    an equal mixture of the two emissions, whatever the flip rate.
+
+    This is the smallest case the benchmark supports and the one to reach for as
+    a test fixture: the likelihood has a closed form with no transfer matrix in
+    it, so a fitted model can be scored against a two-line expression.
+    """
+    family, baseline, separation = BASELINES[family_name]
+    plus, minus, _ = emission_parameters(family, baseline, separation)
+    rng = np.random.default_rng(4)
+    states = sample_latent(1, 128, 0.15, rng)
+    assert states.shape == (128, 1)
+    observations = sample_observations(family, plus, minus, states, rng)
+
+    mixture = np.logaddexp(
+        family.log_prob(observations[:, 0], plus),
+        family.log_prob(observations[:, 0], minus),
+    ) - np.log(2.0)
+    for epsilon in (0.0, 0.15, 0.5, 0.9):
+        exact = log_likelihood(family, observations, plus, minus, epsilon)
+        assert np.allclose(exact, mixture, atol=1e-12)
+        assert np.allclose(
+            exact,
+            log_likelihood_by_enumeration(family, observations, plus, minus, epsilon),
+            atol=1e-12,
+        )
+
+
+def test_the_benchmark_runs_at_a_single_site(capsys):
+    """The lag-dependent tables have no rows there; everything else must run."""
+
+    run_benchmark("normal", sites=1, samples=2000, seed=1)
+    printed = capsys.readouterr().out
+    assert "1 sites" in printed
+    assert "exact likelihood" in printed

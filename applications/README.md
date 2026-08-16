@@ -12,6 +12,9 @@ research workflows into library dependencies.
 | `amplitude_fit_recovery` | Amplitude fitting on the sphere; the shared fitting core |
 | `amplitude_fit_degree` | Targets, total variation, and the truncation study |
 | `baseline_matching` | Choice of reference law, shift solving, degree selection |
+| `amplitude_fit_complex` | Complex amplitude against the convex relaxation |
+| `paper_complex_relaxation` | Writes the relaxation figures: pages, and one diagnostic sheet |
+| `paper_bimodal_gauss` | Symmetric Gaussian mixture on a preset base, class against data |
 | `amplitude_fit_landscape` | Great-circle probe of the objective landscape |
 | `amplitude_fit_limits` | Bias floor of a target with a hard edge |
 | `two_state_hmm` | Two-state hidden-Markov benchmark with an exact likelihood |

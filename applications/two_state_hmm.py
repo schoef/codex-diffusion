@@ -257,7 +257,10 @@ def log_likelihood_by_enumeration(
     observations = np.atleast_2d(np.asarray(observations, dtype=float))
     samples, sites = observations.shape
     transition = transition_matrix(epsilon)
-    log_transition = np.log(transition)
+    # a chain that never flips has zero off-diagonal entries; the resulting
+    # -inf simply removes those paths from the sum, which logsumexp handles
+    with np.errstate(divide="ignore"):
+        log_transition = np.log(transition)
     log_emission = np.stack(
         [
             np.asarray(family.log_prob(observations, plus), dtype=float),
@@ -515,10 +518,6 @@ def main() -> None:
             plot_toy(name, epsilon=args.epsilon, seed=args.seed)
 
 
-if __name__ == "__main__":
-    main()
-
-
 def plot_toy(
     name: str,
     *,
@@ -748,3 +747,7 @@ def plot_correlation_variants(
             output_dir=output_dir,
             tag=f"_epsilon{epsilon:g}",
         )
+
+
+if __name__ == "__main__":
+    main()

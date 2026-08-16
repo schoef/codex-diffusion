@@ -60,11 +60,41 @@ GAPS = (1.1, 2.0)
 # degree-DISPLAY_DEGREE amplitude resolves, and the separation is capped
 MAX_WIDTH_RATIO = 4.5
 
+# how the families are named in figure headings; spelled out, since the figures
+# are read on their own
+FAMILY_TITLES = {
+    "normal": "Normal distribution",
+    "poisson": "Poisson distribution",
+    "gamma": "Gamma distribution",
+    "binomial": "Binomial distribution",
+    "negative-binomial": "Negative binomial distribution",
+    "ghs": "Generalized hyperbolic secant distribution",
+}
+
 TARGET_COLOUR = "0.15"
 REFERENCE_COLOUR = "#d95f02"
 FIT_COLOUR = "#1b6ca8"
 EXACT_COLOUR = "0.45"
 SAMPLE_COLOUR = "0.86"
+
+
+def compact_scientific(value: float, digits: int = 1) -> str:
+    r"""Return a mathtext scientific form, for titles that must fit a panel.
+
+    ``1.3\cdot10^{-3}`` rather than ``1.3e-03``, which sets badly next to the
+    surrounding mathematics and is wider than the space a panel title has.
+    """
+    if not np.isfinite(value) or value <= 0.0:
+        return "0"
+    exponent = int(np.floor(np.log10(value)))
+    mantissa = value / 10.0**exponent
+    if digits == 0:
+        return (
+            rf"10^{{{exponent}}}"
+            if round(mantissa) == 1
+            else (rf"{mantissa:.0f}{{\cdot}}10^{{{exponent}}}")
+        )
+    return rf"{mantissa:.{digits}f}{{\cdot}}10^{{{exponent}}}"
 
 
 def width_ratio(family: Any, template: Any, separation: float) -> float:
@@ -304,13 +334,15 @@ def draw_coefficients(axis: Any, result: dict[str, Any], leftmost: bool) -> None
         axis.axvspan(
             result["selected"] + 0.5, result["degree"] + 0.5, color="0.92", zorder=0
         )
+        # directly under the legend, which sits in the upper right, so the note
+        # reads with the entries it qualifies rather than across the shaded band
         axis.text(
             0.985,
-            0.10,
+            0.78,
             rf"noise beyond $K_\star={result['selected']}$",
             transform=axis.transAxes,
             ha="right",
-            va="bottom",
+            va="top",
             fontsize=6.6,
             color="0.35",
         )
@@ -378,12 +410,15 @@ def make_page(names: tuple[str, str], index: int, output: Path) -> list[dict[str
                     "degree": result["degree"],
                 }
             )
+        # a grid cell bounds the axes, not their titles, so the heading is set
+        # from the cell's own position and cleared by a fixed physical distance
+        box = outer[block].get_position(figure)
         figure.text(
             0.5,
-            0.985 - 0.503 * block,
-            name.replace("-", " "),
+            box.y1 + 0.30 / float(figure.get_size_inches()[1]),
+            FAMILY_TITLES[name],
             ha="center",
-            va="top",
+            va="bottom",
             fontsize=12,
         )
     path = output / f"one-channel-fits-{index}.pdf"
@@ -407,7 +442,7 @@ def make_edge_page(output: Path) -> list[dict[str, Any]]:
         rng = np.random.default_rng(SEED + 11 + column)
         target = truncated_target(name, 0.8)
         result = fit_column(name, target, True, rng)
-        label = f"{name.replace('-', ' ')}, truncated"
+        label = FAMILY_TITLES[name]
         draw_law(axes[0][column], result, label, column == 0)
         draw_coefficients(axes[1][column], result, column == 0)
         axes[0][column].set_xlabel("")

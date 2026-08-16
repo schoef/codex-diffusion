@@ -21,6 +21,11 @@ This repository is the reference implementation for the accompanying note on
 amplitude parametrisations of NEF-QVF laws, and reproduces its figures. See
 [Reproducing the figures](#reproducing-the-figures).
 
+**[GUIDE.md](GUIDE.md) documents the whole repository** — what the package
+provides, what every application does and how to run it, the toy model, the exact
+commands behind each figure in the note, and the conventions and traps worth
+knowing before extending any of it. Start there.
+
 ## Installation
 
 Python 3.11 or newer is required. From the repository root:
@@ -145,6 +150,33 @@ This produces `one-channel-fits-1.pdf` through `-3.pdf`, two families to a page,
 and `one-channel-edge.pdf` for the truncated targets. It also prints the table of
 total variations and selected degrees that the note quotes. With no `--output` it
 writes to the location the note uses.
+
+The figures of the convex-relaxation section are written by two more scripts.
+The first compares the real and complex amplitude across all six families, on
+the same three targets, and writes three pages plus a raster sheet of all six
+families for diagnosis:
+
+```bash
+python -m applications.paper_complex_relaxation \
+    --pages --no-sheet \
+    --output /path/to/paper/figures/complex-relaxation
+```
+
+`--pages` writes `complex-relaxation-fits-1.pdf` through `-3.pdf`, two families
+to a page; `--no-sheet` suppresses the raster diagnostic sheet, which the note
+does not use. Dropping both flags writes only the sheet.
+
+The second is the strongly bimodal study, a symmetric Gaussian mixture against a
+preset base with nothing about the target used to choose the base:
+
+```bash
+python -m applications.paper_bimodal_gauss \
+    --output /path/to/paper/figures/complex-relaxation
+```
+
+This writes `bimodal-gauss-fits.pdf` and prints the degree budget, the total
+variations and the class floor at each separation. `--png` adds a raster copy
+for viewing; the note uses the PDF.
 
 The two-state hidden-Markov figure is produced separately:
 
