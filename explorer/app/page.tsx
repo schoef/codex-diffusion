@@ -167,22 +167,54 @@ function TrajectoryChart({paths,density,f,m0,v0,t,logAxis,tMax}:{paths:number[][
   </svg>
 }
 
+type EvidencePoint={x:number;reference:number;correction:number;total:number;q:number};
+function smoothSeries(values:number[],passes=2){let out=values.slice();for(let pass=0;pass<passes;pass++)out=out.map((_,i)=>{let sum=0,weight=0;[-2,-1,0,1,2].forEach((d,k)=>{const j=clamp(i+d,0,out.length-1),w=[1,4,6,4,1][k];sum+=w*out[j];weight+=w});return sum/weight});return out}
+function buildEvidenceFlow(current:number[],baseline:number[],f:LabFamily,p:LabParams):EvidencePoint[]{
+  const n=f.discrete?Math.round(f.hi-f.lo)+1:64,pc0=hist(current,f.lo,f.hi,n,f.discrete),pb0=hist(baseline,f.lo,f.hi,n,f.discrete),pc=f.discrete?pc0:smoothSeries(pc0,3),pb=f.discrete?pb0:smoothSeries(pb0,3),alpha=f.discrete?.35/Math.max(1,current.length):1e-7;
+  const q=pc.map((v,i)=>(v+alpha)/(pb[i]+alpha)),xs=Array.from({length:n},(_,i)=>f.discrete?f.lo+i:f.lo+(i+.5)*(f.hi-f.lo)/n),logq=q.map(v=>clamp(Math.log(Math.max(1e-9,v)),-8,8));
+  return xs.map((x,i)=>{
+    const reference=f.mean-x;
+    if(!f.discrete){const i0=Math.max(0,i-1),i1=Math.min(n-1,i+1),score=(logq[i1]-logq[i0])/Math.max(1e-9,xs[i1]-xs[i0]),a=f.id==="gaussian"?2*Math.max(.05,p.base2)**2:2*Math.max(.05,p.base2)*Math.max(0,x),correction=a*score;return{x,reference,correction,total:reference+correction,q:q[i]}}
+    let up=0,down=0;
+    if(f.id==="poisson"){up=Math.max(.05,p.base1);down=x}
+    else if(f.id==="binomial"){const N=Math.round(clamp(p.base1,2,80)),prob=clamp(p.base2,.02,.98);up=prob*Math.max(0,N-x);down=(1-prob)*Math.max(0,x)}
+    else {const shape=Math.max(.15,p.base1),c=clamp(p.base2,.02,.94);up=c*(shape+x)/(1-c);down=x/(1-c)}
+    const upRatio=i<n-1?q[i+1]/Math.max(1e-9,q[i]):1,downRatio=i>0?q[i-1]/Math.max(1e-9,q[i]):1,total=up*upRatio-down*downRatio;return{x,reference,correction:total-reference,total,q:q[i]}
+  })
+}
+
+function EvidenceFlowChart({points,f,probe,onProbe}:{points:EvidencePoint[];f:LabFamily;probe:number;onProbe:(x:number)=>void}){
+  const W=1080,H=310,left=72,right=26,top=25,bottom=56,span=Math.max(1,f.hi-f.lo),cap=Math.max(4,span),x=(v:number)=>left+(v-f.lo)/span*(W-left-right),y=(v:number)=>H-bottom-(clamp(v,-cap,cap)+cap)/(2*cap)*(H-top-bottom),nearest=points.reduce((best,p)=>Math.abs(p.x-probe)<Math.abs(best.x-probe)?p:best,points[0]),line=(key:"reference"|"correction"|"total")=>points.map(p=>`${x(p.x)},${y(p[key])}`).join(" "),ticks=[-1,-.5,0,.5,1],xTicks=[0,.25,.5,.75,1];
+  return <div className="evidence-visual">
+    <svg className="evidence-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Reverse evidence-flow decomposition for the ${f.name} family at the current noising time`} onPointerDown={e=>{const box=e.currentTarget.getBoundingClientRect(),px=(e.clientX-box.left)/box.width*W;onProbe(clamp(f.lo+(px-left)/(W-left-right)*span,f.lo,f.hi))}}>
+      <defs><clipPath id="evidence-clip"><rect x={left} y={top} width={W-left-right} height={H-top-bottom}/></clipPath></defs>
+      {ticks.map(v=><g key={v}><line x1={left} x2={W-right} y1={y(v*cap)} y2={y(v*cap)} className={v===0?"zero-line":"gridline"}/><text x={left-10} y={y(v*cap)+4} textAnchor="end">{(v*cap).toFixed(cap<10?1:0)}</text></g>)}
+      {xTicks.map(v=><text key={v} x={x(f.lo+v*span)} y={H-bottom+19} textAnchor="middle">{(f.lo+v*span).toFixed(f.discrete?0:1)}</text>)}
+      <g clipPath="url(#evidence-clip)"><polyline points={line("reference")} className="evidence-reference"/><polyline points={line("correction")} className="evidence-correction" style={{stroke:f.color}}/><polyline points={line("total")} className="evidence-total"/><line x1={x(nearest.x)} x2={x(nearest.x)} y1={top} y2={H-bottom} className="probe-line"/>{(["reference","correction","total"] as const).map((key,i)=><circle key={key} cx={x(nearest.x)} cy={y(nearest[key])} r={i===2?4:3} className={`probe-dot ${key}`} style={key==="correction"?{fill:f.color}:undefined}/>)}</g>
+      <line x1={left} x2={W-right} y1={H-bottom} y2={H-bottom} className="axis"/><line x1={left} x2={left} y1={top} y2={H-bottom} className="axis"/><text className="axis-title" x={(left+W-right)/2} y={H-6} textAnchor="middle">state x</text><text className="axis-title" transform={`translate(16 ${(top+H-bottom)/2}) rotate(-90)`} textAnchor="middle">local drift  dx/dτ  [state / reverse-time]</text>
+    </svg>
+    <label className="probe-control"><span>Inspect state x <output>{nearest.x.toFixed(f.discrete?0:2)}</output></span><input type="range" min={f.lo} max={f.hi} step={f.discrete?1:span/200} value={nearest.x} onChange={e=>onProbe(+e.target.value)}/></label>
+    <div className="evidence-values" aria-label="Local reverse-flow decomposition"><span>reference <b>{nearest.reference.toFixed(2)}</b></span><i>+</i><span>evidence correction <b>{nearest.correction.toFixed(2)}</b></span><i>=</i><span>reverse total <b>{nearest.total.toFixed(2)}</b></span><span className="q-value">q<sub>t</sub>(x) ≈ <b>{nearest.q.toFixed(2)}</b></span></div>
+  </div>
+}
+
 function NumberField({label,value,min,max,step,onChange}:{label:string;value:number;min:number;max:number;step:number;onChange:(v:number)=>void}){
   return <label className="param-field"><span>{label}</span><input type="number" value={value} min={min} max={max} step={step} onChange={e=>onChange(clamp(+e.target.value,min,max))}/></label>
 }
 const dataLawNames:Record<string,string>={delta:"δ-data",shifted:"shifted family",mixture:"balanced bimodal",uniform:"uniform block",comb:"three-point comb",outliers:"sparse contamination",skewed:"one-sided tail",edges:"edge-loaded interval"};
 
 function NoisingLab(){
-  const [id,setId]=useState("gaussian"),[law,setLaw]=useState("delta"),[u,setU]=useState(0),[logTime,setLogTime]=useState(true),[axisLog,setAxisLog]=useState(false),[tMax,setTMax]=useState(5),[playing,setPlaying]=useState(false),[seed,setSeed]=useState(31),[paramSets,setParamSets]=useState<Record<string,LabParams>>(defaultLabParams);
+  const [id,setId]=useState("gaussian"),[law,setLaw]=useState("delta"),[u,setU]=useState(0),[logTime,setLogTime]=useState(true),[axisLog,setAxisLog]=useState(false),[tMax,setTMax]=useState(5),[playing,setPlaying]=useState(false),[seed,setSeed]=useState(31),[probe,setProbe]=useState(0),[paramSets,setParamSets]=useState<Record<string,LabParams>>(defaultLabParams);
   const p=paramSets[id],baseFamily=labFamilies.find(x=>x.id===id)!,f=configuredFamily(baseFamily,p),setParam=(key:keyof LabParams,value:number)=>setParamSets(all=>({...all,[id]:{...all[id],[key]:value}}));
   const timeFromPosition=(v:number,log=logTime)=>labTime(v,log,tMax);
   const t=timeFromPosition(u);
   useEffect(()=>{if(!playing)return;const timer=setInterval(()=>setU(v=>{if(v>=1){setPlaying(false);return 1}return Math.min(1,v+.005)}),40);return()=>clearInterval(timer)},[playing]);
   useEffect(()=>{setPlaying(false);setU(0)},[id,law]);
+  useEffect(()=>{setProbe(f.mean)},[id,p.base1,p.base2]);
   const laws=useMemo(()=>{const n=Math.round(p.sampleN),ri=rng(seed),rk=rng(seed+991),rb=rng(seed+1777),initial=Array.from({length:n},()=>initialSample(id,law,p,ri));return{initial,current:initial.map(x=>kernelSample(id,x,t,p,rk)),baseline:Array.from({length:n},()=>baselineSample(id,p,rb))}},[id,law,t,seed,p]);
   const trajectories=useMemo(()=>{const n=16,steps=120,times=Array.from({length:steps+1},(_,i)=>labTime(i/steps,axisLog,tMax)),r=rng(seed+3331),out:number[][]=[];for(let j=0;j<n;j++){let x=initialSample(id,law,p,r),path=[x];for(let i=1;i<=steps;i++){x=kernelSample(id,x,times[i]-times[i-1],p,r);path.push(x)}out.push(path)}return out},[id,law,seed,p,axisLog,tMax]);
   const density=useMemo(()=>{const cols=64,bins=f.discrete?Math.round(f.hi-f.lo)+1:48,n=Math.round(p.densityN);return Array.from({length:cols},(_,i)=>{const s=labTime(i/(cols-1),axisLog,tMax),ri=rng(seed+7103+i*97),rk=rng(seed+9109+i*131),values=Array.from({length:n},()=>kernelSample(id,initialSample(id,law,p,ri),s,p,rk));return hist(values,f.lo,f.hi,bins,f.discrete)})},[id,law,seed,p,f.lo,f.hi,f.discrete,axisLog,tMax]);
-  const m0=laws.initial.reduce((s,x)=>s+x,0)/laws.initial.length,v0=laws.initial.reduce((s,x)=>s+(x-m0)*(x-m0),0)/laws.initial.length,currentHist=hist(laws.current,f.lo,f.hi,f.discrete?1:42,f.discrete),baselineHist=hist(laws.baseline,f.lo,f.hi,f.discrete?1:42,f.discrete),tv=.5*currentHist.reduce((s,x,i)=>s+Math.abs(x-baselineHist[i]),0),w=Math.exp(-t),mt=f.mean+w*(m0-f.mean),vt=Math.max(0,w*w*v0+f.v*(1-w*w)+f.vp*(m0-f.mean)*w*(1-w));
+  const evidence=useMemo(()=>buildEvidenceFlow(laws.current,laws.baseline,f,p),[laws.current,laws.baseline,f,p]),m0=laws.initial.reduce((s,x)=>s+x,0)/laws.initial.length,v0=laws.initial.reduce((s,x)=>s+(x-m0)*(x-m0),0)/laws.initial.length,currentHist=hist(laws.current,f.lo,f.hi,f.discrete?1:42,f.discrete),baselineHist=hist(laws.baseline,f.lo,f.hi,f.discrete?1:42,f.discrete),tv=.5*currentHist.reduce((s,x,i)=>s+Math.abs(x-baselineHist[i]),0),w=Math.exp(-t),mt=f.mean+w*(m0-f.mean),vt=Math.max(0,w*w*v0+f.v*(1-w*w)+f.vp*(m0-f.mean)*w*(1-w));
   return <section className="noising-lab">
     <div className="lab-grid">
       <aside className="panel lab-controls"><div className="panel-title"><span>05</span><h2>Experiment</h2></div>
@@ -219,6 +251,13 @@ function NoisingLab(){
         <div className="trajectory-block"><div className="trajectory-head"><div><p className="eyebrow">EXPECTATION VS REALISATIONS</p><h3>Random paths follow a deterministic moment flow</h3></div><div className="trajectory-tools"><div className="axis-toggle"><span>Time axis</span><div className="clock-switch" role="group" aria-label="Lower chart time-axis scale"><button className={!axisLog?"active":""} onClick={()=>setAxisLog(false)}>Linear</button><button className={axisLog?"active":""} onClick={()=>setAxisLog(true)}>Log</button></div></div><div className="moment-now"><span>E[X<sub>t</sub>] <b>{mt.toFixed(2)}</b></span><span>SD[X<sub>t</sub>] <b>{Math.sqrt(vt).toFixed(2)}</b></span></div></div></div><TrajectoryChart paths={trajectories} density={density} f={f} m0={m0} v0={v0} t={t} logAxis={axisLog} tMax={tMax}/><div className="trajectory-legend"><span><i className="mean-key"/> analytic expectation</span><span><i className="path-key"/> random realisations</span></div><div className="density-legend" style={{"--density-color":f.color} as React.CSSProperties}><span>10<sup>−3</sup> × max</span><i/><span>max</span><b>log<sub>10</sub> relative density p<sub>t</sub>(x)</b></div></div>
       </div>
     </div>
+    <details className="evidence-drawer"><summary><span>Section 13</span> Reverse evidence flow</summary><div className="evidence-body">
+      <div className="evidence-head"><div><p className="eyebrow">LOCAL DOOB-TRANSFORM DECOMPOSITION</p><h3>Reference motion + learned evidence = reverse motion</h3></div><div className="evidence-time"><small>NOISING TIME</small><b>t = {t.toFixed(3)}</b></div></div>
+      <div className="evidence-formula">{f.discrete?<span>Ĵ<sub>t</sub>(x,y) = J(x,y) · q<sub>t</sub>(y) / q<sub>t</sub>(x)</span>:<span>b̂<sub>t</sub>(x) = b(x) + a(x) ∂<sub>x</sub> log q<sub>t</sub>(x)</span>}<small>{f.discrete?"The chart shows the resulting net jump drift Ĵ₊−Ĵ₋.":"The chart separates the baseline drift from the amplitude-score correction."}</small></div>
+      <div className="evidence-legend"><span><i className="ref-flow"/>reference drift</span><span><i className="correction-flow" style={{borderColor:f.color}}/>evidence correction</span><span><i className="total-flow"/>reverse total</span></div>
+      <EvidenceFlowChart points={evidence} f={f} probe={probe} onProbe={setProbe}/>
+      <p className="evidence-note">q<sub>t</sub> = p<sub>t</sub>/p<sub>ref</sub> is estimated from the displayed Monte Carlo ensemble. The vertical scale is linear and fixed to ±{Math.max(4,f.hi-f.lo).toFixed(0)} state units per unit reverse-time.{!f.discrete&&t<.01?" At t=0 a continuous delta law is singular; the smoothed finite-sample score is only indicative until t>0.":""}</p>
+    </div></details>
     <details className="scientific-notes"><summary>Analytic moments &amp; exact transition kernel</summary><div><p><b>Mean:</b> E[X<sub>t</sub>] = μ + w(E[X<sub>0</sub>] − μ)</p><p><b>Variance:</b> Var[X<sub>t</sub>] = w²Var[X<sub>0</sub>] + V(μ)(1−w²) + V′(μ)(E[X<sub>0</sub>]−μ)w(1−w)</p><code>{f.kernel}</code></div></details>
   </section>
 }
