@@ -32,13 +32,13 @@ from typing import Any
 import numpy as np
 from scipy.linalg import null_space
 
-from applications.amplitude_fit_recovery import (
+from applications.targets import (
     FAMILY_NAMES,
     TARGETS,
     exact_amplitude,
     exact_ratio_coefficients,
-    product_matrices,
 )
+from nefqvf.fitting import product_matrices
 
 DEFAULT_DEGREE = 6
 DEFAULT_DIRECTIONS = 200

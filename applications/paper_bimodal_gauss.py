@@ -49,7 +49,6 @@ from applications.amplitude_fit_complex import (
     rank_two_seed,
     relaxed_optimum,
 )
-from applications.amplitude_fit_recovery import TARGETS, fit_amplitude
 from applications.baseline_matching import select_degree_by_likelihood
 from applications.paper_one_channel import (
     EXACT_COLOUR,
@@ -59,7 +58,9 @@ from applications.paper_one_channel import (
     TARGET_COLOUR,
     compact_scientific,
 )
+from applications.targets import TARGETS
 from nefqvf import NormalParams
+from nefqvf.fitting import fit_amplitude
 
 SEPARATIONS = (1.0, 2.0, 3.0, 4.0)
 DISPLAY_DEGREE = 12

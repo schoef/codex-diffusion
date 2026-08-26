@@ -80,6 +80,7 @@ what it is for:
 - `shifted_params(params, natural_shift)` — the member at `eta + j`
 - `shift_coordinate(natural_shift, params)` → `z`, and `from_shift_coordinate(z, params)` back
 - `shift_coefficients(natural_shift, n_max, params)` — the ratio coefficients `gamma_n z**n`
+- `one_shot_sample(x, t, params, rng=…)` — exact draw of `X_t | X_0 = x` from the reference process (thinning plus replenishment, `w = e^{-t}`); `t = 0` returns `x`; GHS raises, having no positivity-preserving kernel
 
 `z` is the coordinate the reference flow contracts, `z → e^{-t} z`. That single
 fact is what makes the diffusion closed-form on these families, and it is why
@@ -134,6 +135,11 @@ Run everything as a module from the repository root: `python -m applications.<na
 | `amplitude_fit_complex` | Does the complex amplitude reach the convex optimum? |
 | `shifted_baseline_probability_modes` | Do probability modes project and damp as claimed? |
 | `two_state_hmm` | The toy model: a benchmark with an exact likelihood at every diffusion time. |
+| `one_site_diffusion` | The diffusion model at one site: schedule, certified per-slice fits, consistency tie, both samplers. |
+| `amplitude_fit_recentred` | Joint Fisher-location + amplitude fit; removes the displacement wall at fixed degree. |
+| `two_site_diffusion` | The pair model: Kronecker reuse of the one-site fit, bond spectra, latent resolution by cross moments. |
+| `d_site_diffusion` | The chain at bond dimension chi: DMRG-style bond sweeps, exact NLL gap, latent readout per bond. |
+| `mps_amplitude` | Shared MPS algebra: canonical forms, bond merging/splitting, exact moments, sequential Born sampler. |
 | `paper_one_channel`, `paper_complex_relaxation`, `paper_bimodal_gauss` | the note's figures (§5) |
 
 ### 3.1 `amplitude_fit_recovery` — the fitting core
@@ -237,6 +243,162 @@ chambered likelihood.
 
 `amplitude_fit_limits` measures how the bias floor of a hard-edge target falls
 with degree, and draws the best achievable fit for each family.
+
+### 3.5 `one_site_diffusion` — the collapsed diffusion model
+
+The note's algorithm at `d = 1`, per its one-site appendix: a χ²-uniform
+schedule built from the empirical coefficients; one complex amplitude fitted
+per slice, warm-started from the previous slice and tied to it by the
+consistency penalty — which folds into the *same* least squares as a blended
+target, so no new optimiser exists here; every slice certified against the
+convex relaxation (`certified_gap`) and scored in total variation against the
+**exact** noised law, available in closed form by family invariance.
+Generation runs both ways: exact direct sampling from the final slice
+(component draw from `rho = a aᵀ + b bᵀ`, then a one-dimensional draw), and
+the reverse Doob sampler down the schedule, with the per-step effective sample
+size as the proposal diagnostic. A cold-start fit of the `t = 0` slice is
+reported next to the continuation — the comparison the note flags as its open
+empirical question.
+
+Beyond the four-panel study figure (`--plot`), `--latent` writes a second
+figure probing the latent structure of the mixture target: an ensemble of
+independently trained `t = 0` laws against the members and the baseline; the
+per-mode decay along the schedule (empirical and fitted coefficients against
+the exact `exp(-kt)` lines and the per-mode noise band — the ILSE regression
+made visible); the Gram-corrected weights of the fitted density matrix on the
+two contracted member states, with the Frobenius residual outside their span;
+and shared-latent toys — one pure state per toy drawn from the member-aligned
+split of the fitted `rho`, then a toy-sized i.i.d. sample, so the histogram of
+toy means is sharply bimodal at the member means exactly when the fitted
+density matrix carries the two lumps.
+
+A caveat the latent panels make visible: the one-site marginal does **not**
+identify the density matrix. `|h_c|^2` fixes a nonnegative polynomial whose
+complex factorisation has a chamber of root-conjugation choices, all with the
+same law and likelihood; the fitted `rho` is whichever chamber the optimiser
+lands in. The machinery is verified on the exact member chamber
+`(h_+ + i h_-)/sqrt(2)` (weights exactly 1/2, residual ~1e-16, lumps at the
+member means — pinned by a test); on fitted amplitudes the lumps are typically
+pulled inward and the residual measures the chamber's distance from the member
+one. Resolving the chamber needs multi-site (bond) information.
+
+```bash
+python -m applications.one_site_diffusion --family poisson --target mixture
+python -m applications.one_site_diffusion --family all --plot --latent
+python -m applications.one_site_diffusion --family gamma --target shifted --slices 10
+```
+
+GHS is skipped: with no positivity-preserving kernel there is no forward
+process to run.
+
+### 3.5b `amplitude_fit_recentred` — the Fisher location as a parameter
+
+The joint fit of a baseline arclength `theta` and a complex amplitude in
+the transported frame: the model is `p_{eta(theta)} |h_c|^2`, the loss
+matches the model coefficients to the empirical coefficients *of the
+moved baseline*, and the near-flat coherent-shift direction is removed
+from the optimiser's tangent space alongside the norm and phase gauges
+(the note's baseline-flow generator `G0` supplies the direction). Theta
+is initialised by the arclength to the sample mean and polished jointly;
+the final amplitude is orbit-transported to the moment gauge `R_1 = 0`.
+
+Finding (offset sweep at fixed K = 4): the plain complex fit hits the
+displacement wall and degrades to TV ~ 0.7-0.9, while the recentred fit
+stays at the sampling floor (~2e-3) for all offsets and recovers the
+Fisher location to three decimals. The wall is a property of the frame,
+not of the class.
+
+```bash
+python -m applications.amplitude_fit_recentred --family poisson --degree 4 --plot
+python -m applications.amplitude_fit_recentred --family normal --degree 4 --plot
+```
+
+### 3.6 `two_site_diffusion` — the smallest case with a bond
+
+The lag-one pair of the two-state hidden Markov toy, fitted by one complex
+amplitude on the product basis. The entire one-site machinery is reused
+verbatim on the Kronecker stack ``Phi_j (x) Phi_k`` with ``c = vec(C)``; the
+model's bond dimension is the Schmidt rank of ``C``. The study runs the same
+schedule/tie/certificate loop as one site, plus the latent-resolution
+experiment at ``t = 0``: the same data fitted with the full pair objective and
+with the cross moments weighted to zero (``marginal_weight``), the control for
+the claim that cross moments carry the latent.
+
+Findings the module pins with tests:
+
+- **Cross moments resolve the latent — at the law level.** The pair moment
+  matrix is ``M = R W R^T`` with the columns of ``R`` on the family's coherent
+  moment curve; ``factorise_pair_moments`` intersects the top-two column span
+  of ``M`` with the curve and recovers the member shifts, the mixture weights,
+  and the flip probability ``epsilon`` — from fitted moments and from raw
+  data alike. The marginal-only fit fails this factorisation, as predicted.
+  Two sites alone leave a one-parameter family of two-product decompositions
+  (classical: three are needed generically); the moment-curve constraint is
+  what removes it here.
+- **The amplitude gauge is NOT resolved — at any number of sites.** For a
+  mixture of family members the density ratio depends on the sufficient
+  statistic ``x_1 + ... + x_N`` alone, so a phase gauge in the sum variable
+  survives: fits matching all pair moments to 1e-12 sit at fidelity ~ 0.8 to
+  the reference branch amplitude. The latent lives in the law, not in the
+  amplitude's internal decomposition. Read it with ``factorise_pair_moments``,
+  never from the fitted coefficients directly.
+- **A pure amplitude is rank-2 as a pair density matrix**, while the HMM law
+  at ``0 < epsilon < 1/2`` is a rank-four mixture: the pure model is exact at
+  ``epsilon = 0`` and ``1/2`` only. At the default separation the class error
+  is below the sampling floor, so it does not show in TV; it is a real
+  ceiling at larger separations.
+
+```bash
+python -m applications.two_site_diffusion --family poisson --epsilon 0.05 --plot
+python -m applications.two_site_diffusion --family poisson --epsilon 0 --separation 0.8
+```
+
+### 3.7 `d_site_diffusion` — the chain, swept
+
+The general case: a complex MPS amplitude over ``d`` sites at fixed bond
+dimension ``chi``, trained on the hidden-Markov chain noised sitewise by the
+one-shot kernels. ``mps_amplitude.py`` carries the algebra (canonical forms,
+merging/splitting, exact moments, the sequential Born sampler — all standard
+MPS operations, valid verbatim because the polynomial basis is orthonormal
+under the baseline). Training is DMRG-style: in mixed canonical form the pair
+moments at a bond are ``vec(B)^dagger (I x Phi_j x Phi_k x I) vec(B)`` of the
+merged tensor, so **every bond update is the same complex LM fit as one
+site**, warm-started along the sweep and across slices, tied by the blended
+pair target, truncated back to ``chi`` by SVD. Nothing new is optimised
+anywhere in the stack — one fitter serves d = 1, 2, and general d.
+
+Everything is scored against closed forms: exact lag-one pair law of the
+noised chain per bond, exact transfer-matrix likelihood of held-out noised
+data (the NLL gap), Schmidt spectra, and the moment-curve factorisation
+reading the members and the flip probability off the fitted bond moments —
+the d-site latent readout. At deep slices the factorisation returns noise,
+correctly: past the slice time where the second cross-moment singular value
+dies, the bond carries no signal.
+
+Findings from the first d = 8 runs (Poisson, sep 0.57, eps 0.05):
+
+- **The chain trains.** Per-bond pair TV sits at the sampling floor
+  (~1e-2), the generated sample lands on the exact site marginals, and the
+  latent readout at ``t = 0`` recovers the member shifts and
+  ``epsilon`` from the fitted middle-bond moments. The middle-bond Schmidt
+  value ``sigma_2`` grows monotonically toward ``t = 0`` — the entanglement
+  building down the schedule.
+- **chi = 1 fails, chi = 3 does not help.** The product model misses the
+  pair law by an order of magnitude and reads no latent; raising chi past 2
+  leaves pair TV and the NLL gap unchanged.
+- **The binding constraint is the objective, not the class.** The held-out
+  NLL gap (~0.03 nats/site at ``t = 0``) survives chi = 3, more sweeps and
+  higher degree; sampling the trained model shows why: lag-1 cross moments
+  (in the objective) improve with capacity, lag-2/3 cross moments (absent
+  from it) stay misfit. The lag-one pair objective under-determines the
+  joint law at ``d >= 3``. The natural next step is a richer local
+  objective — multi-lag moments via three-site merges, or local likelihood
+  updates — which is exactly the multichannel master-objective question.
+
+```bash
+python -m applications.d_site_diffusion --family poisson --sites 8 --plot
+python -m applications.d_site_diffusion --family poisson --sites 8 --chi 3
+```
 
 ---
 
@@ -365,9 +527,11 @@ python -m pytest -q
 | `tests/package/test_moments_affinity.py` | mean, variance, variance slope, Hellinger affinity |
 | `tests/package/test_shifts_linearization.py` | shift coefficients and the product tensor |
 | `tests/package/test_broadcasting.py` | paired, outer and batch parameter shapes |
+| `tests/package/test_one_shot.py` | one-shot kernels: `t = 0` identity, conditional mean and affine variance, member-flow invariance, lattice closure, GHS refusal |
 | `tests/applications/test_amplitude_fit.py` | the real fit, degree selection, targets |
 | `tests/applications/test_amplitude_fit_complex.py` | complex fit, relaxation, certificates, factorisation, lattice caps, half-line model |
 | `tests/applications/test_two_state_hmm.py` | transfer matrix vs enumeration, flow, moments, **single site** |
+| `tests/applications/test_one_site_diffusion.py` | schedule, certified slices, warm vs cold start, blended tie algebra, slice truths vs quadrature, SNR formula vs lattice sum, predicted floor, exact-chamber latent split, both samplers, GHS refusal |
 | `tests/applications/test_shifted_baseline_probability_modes.py` | mode projection and damping |
 
 ---
@@ -398,10 +562,34 @@ part company once `R_k` spans orders of magnitude — in several fits `J` improv
 while `D` gets worse, because unweighted least squares spends itself on the
 high-`k` tail rather than where the mass is. Quote both.
 
+**Naming vs the note.** The note writes the slice matrices as `Lambda_k`
+(single subscript, the k-th slice of the structure tensor); the package and
+the applications call the same stack `phi` / `fitting_matrices`. Code
+identifiers are not notation and stay as they are.
+
 **The relaxation's own gap can be loose; the amplitude's is tight.** LM converges
 far harder than first-order methods on the spectrahedron. To certify a claim,
 compute `certified_gap` at the fitted amplitude rather than trusting agreement
 between two optimisers.
+
+**The certificate's resolution is `eps * ||M||`.** The gap is an eigenvalue
+difference of `M = sum_k (W r)_k Phi_k`, and the high-degree `Phi_k` carry large
+entries, so once `||M||` is big the computed gap drowns in floating-point noise:
+a genuinely suboptimal fit can print a tiny relative gap, and an essentially
+perfect one a huge absolute gap. Where fits are cheap — one site — run both the
+warm and the vacuum-continued start and keep the better objective; use the
+certificate as a diagnostic, not as a gate.
+
+**The exact coefficient variance overstates finite-sample noise at high
+degree.** ``Var_{p_t}[phi_k] = sum_j Lambda_kkj R_j(t) - R_k(t)^2`` is exact
+(machine-checked against a lattice sum in the one-site tests), but at high
+``k`` it is dominated by tail states whose expected count in ``N`` draws is
+astronomically below one — half of ``E[phi_16^2]`` for the Poisson mixture
+lives past ``x = 41``, where ``N P(X >= x) ~ 1e-12`` at ``N = 48000``. A
+realised sample never sees those states, so the typical coefficient noise is
+far smaller than the asymptotic one. For a finite-sample error floor,
+truncate the variance to the reachable region ``N p_t(x) dx >= 1``
+(``snr_prediction`` in ``applications/one_site_diffusion.py``).
 
 **Sum of squares is conservative off ℝ.** `ρ ⪰ 0` makes `q ≥ 0` on the whole line.
 On ℝ that is exactly the positive class (Markov–Lukács); on a lattice or half line

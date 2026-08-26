@@ -49,6 +49,17 @@ class NormalFamily(Family):
 
         return rng.normal(loc=float(params.mean), scale=float(params.sigma), size=size)
 
+    def _one_shot_sample(self, x, t, params, rng) -> np.ndarray:
+        """Ornstein-Uhlenbeck transition: contracted mean, replenished noise."""
+
+        if not np.all(np.isfinite(x)):
+            raise ValueError("x must be finite")
+        mean = float(params.mean)
+        sigma = float(params.sigma)
+        w = np.exp(-t)
+        scale = sigma * np.sqrt(-np.expm1(-2.0 * t))
+        return mean + w * (x - mean) + scale * rng.standard_normal(x.shape)
+
     def variance(self, params: NormalParams) -> np.ndarray:
         """Return ``sigma**2`` with the full parameter batch shape."""
 

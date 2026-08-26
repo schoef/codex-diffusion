@@ -33,19 +33,20 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from applications.amplitude_fit_degree import (
+from applications.baseline_matching import (
+    select_degree_by_likelihood,
+    separation_for_gap,
+)
+from applications.targets import (
     FAMILY_MAX_DEGREE,
+    TARGETS,
     integrate,
     mixture_target,
     shifted_target,
     support_grid,
     truncated_target,
 )
-from applications.amplitude_fit_recovery import TARGETS, fit_amplitude, product_matrices
-from applications.baseline_matching import (
-    select_degree_by_likelihood,
-    separation_for_gap,
-)
+from nefqvf.fitting import fit_amplitude, product_matrices
 
 PAGES = (("normal", "poisson"), ("gamma", "binomial"), ("negative-binomial", "ghs"))
 EDGE_FAMILIES = ("gamma", "ghs")

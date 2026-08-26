@@ -8,9 +8,10 @@ research workflows into library dependencies.
 
 | Module | Purpose |
 | --- | --- |
+| `targets` | Baselines, the three target families, and total variation |
 | `paper_one_channel` | Writes the one-channel amplitude figures of the note |
-| `amplitude_fit_recovery` | Amplitude fitting on the sphere; the shared fitting core |
-| `amplitude_fit_degree` | Targets, total variation, and the truncation study |
+| `amplitude_fit_recovery` | Recovery of a known amplitude at the statistical rate |
+| `amplitude_fit_degree` | How large a truncation a given sample size supports |
 | `baseline_matching` | Choice of reference law, shift solving, degree selection |
 | `amplitude_fit_complex` | Complex amplitude against the convex relaxation |
 | `paper_complex_relaxation` | Writes the relaxation figures: pages, and one diagnostic sheet |
@@ -18,7 +19,19 @@ research workflows into library dependencies.
 | `amplitude_fit_landscape` | Great-circle probe of the objective landscape |
 | `amplitude_fit_limits` | Bias floor of a target with a hard edge |
 | `two_state_hmm` | Two-state hidden-Markov benchmark with an exact likelihood |
+| `one_site_diffusion` | The full diffusion loop at one site: schedule, certified per-slice fits, both samplers, SNR floor, latent-structure figure |
+| `two_site_diffusion` | The pair model on the HMM toy: Kronecker pair fit, bond spectra, moment-curve latent factorisation |
+| `d_site_diffusion` | The chain at bond dimension chi: DMRG-style bond sweeps against the exact HMM |
+| `mps_amplitude` | Shared MPS algebra used by the d-site model |
+| `paper_two_site` | The two-site latent figure of the note |
+| `amplitude_fit_recentred` | Joint Fisher-location + complex-amplitude fit (kills the displacement wall) |
 | `shifted_baseline_probability_modes` | Probability modes of a shifted baseline |
+
+The solver itself is not here: `fit_amplitude`, `product_matrices` and
+`ratio_coefficients` live in the package as `nefqvf.fitting`, since they depend
+on nothing but the family. `targets` holds the application's choices -- which
+baselines, which targets, which metric -- and the modules below are studies
+built on those two.
 
 The one-channel figures are the ones the note cites; see
 [Reproducing the figures](../README.md#reproducing-the-figures).

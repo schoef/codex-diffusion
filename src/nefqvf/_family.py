@@ -133,6 +133,42 @@ class Family(ABC):
             raise ValueError("sample requires scalar family parameters")
         return np.asarray(self._sample(params, size, resolve_generator(rng)))
 
+    def one_shot_sample(
+        self, x: Any, t: Any, params: Any, *, rng: Generator | None = None
+    ) -> np.ndarray:
+        """Draw ``X_t`` given ``X_0 = x`` under the family's reference process.
+
+        The reference process is the reversible relaxation with stationary law
+        ``params`` and unit-spaced spectrum -- the time unit in which the shift
+        coordinate contracts as ``z -> exp(-t) z``. Its transition law is the
+        exact one-shot kernel, a thinned copy of ``x`` plus an independent
+        replenishment, so forward noising costs one draw and no time
+        discretisation. ``x`` and ``t`` broadcast together; ``t = 0`` returns
+        ``x`` exactly. Parameters must be scalar, as in ``sample``. GHS raises:
+        it has no positivity-preserving kernel.
+        """
+        self._check_type(params)
+        self._validate(params)
+        _, _, batch_shape = broadcast_parameter_values(params)
+        if batch_shape:
+            raise ValueError("one_shot_sample requires scalar family parameters")
+        x_array, t_array = np.broadcast_arrays(
+            np.asarray(x), np.asarray(t, dtype=float)
+        )
+        if not np.all(np.isfinite(t_array)) or np.any(t_array < 0.0):
+            raise ValueError("t must be finite and nonnegative")
+        draw = self._one_shot_sample(x_array, t_array, params, resolve_generator(rng))
+        return np.asarray(np.where(t_array == 0.0, x_array, draw))
+
+    def _one_shot_sample(
+        self, x: np.ndarray, t: np.ndarray, params: Any, rng: Generator
+    ) -> np.ndarray:
+        """Family-specific exact transition draw, where one exists."""
+
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement a one-shot kernel"
+        )
+
     def mean(self, params: Any) -> np.ndarray:
         """Return the broadcast public mean parameter."""
 

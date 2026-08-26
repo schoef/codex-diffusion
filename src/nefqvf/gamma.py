@@ -49,6 +49,21 @@ class GammaFamily(Family):
         r = float(params.r)
         return rng.gamma(shape=r, scale=float(params.mean) / r, size=size)
 
+    def _one_shot_sample(self, x, t, params, rng) -> np.ndarray:
+        """CIR transition: a Poisson-mixed gamma at the contracted scale."""
+
+        if not np.all(np.isfinite(x)) or np.any(x < 0.0):
+            raise ValueError("x must be finite and nonnegative")
+        r = float(params.r)
+        theta = float(params.mean) / r
+        one_minus_w = -np.expm1(-t)
+        frozen = one_minus_w < 1e-12
+        safe = np.where(frozen, 1.0, one_minus_w)
+        rate = np.where(frozen, 0.0, np.exp(-t) * x / (theta * safe))
+        count = rng.poisson(rate)
+        draw = rng.gamma(shape=r + count, scale=theta * safe)
+        return np.where(frozen, x, draw)
+
     def variance(self, params: GammaParams) -> np.ndarray:
         """Return ``mean**2 / r``."""
 

@@ -118,17 +118,14 @@ def plot_baseline_choice(
 
     import matplotlib.pyplot as plt
 
-    from applications.amplitude_fit_degree import (
+    from applications.targets import (
         FAMILY_MAX_DEGREE,
+        TARGETS,
         build_targets,
         integrate,
         support_grid,
     )
-    from applications.amplitude_fit_recovery import (
-        TARGETS,
-        fit_amplitude,
-        product_matrices,
-    )
+    from nefqvf.fitting import fit_amplitude, product_matrices
 
     degree = min(degree, FAMILY_MAX_DEGREE.get(name, degree))
     family, template, shift = TARGETS[name]
@@ -278,7 +275,7 @@ def plot_baseline_choice(
 
 
 if __name__ == "__main__":
-    from applications.amplitude_fit_recovery import FAMILY_NAMES
+    from applications.targets import FAMILY_NAMES
 
     for family_name in FAMILY_NAMES:
         for entry in plot_baseline_choice(family_name):
@@ -351,7 +348,7 @@ def select_degree_by_likelihood(
     optimise: as an objective it carries one logarithmic barrier per distinct
     observed value, whereas the coefficient loss it selects for is a polynomial.
     """
-    from applications.amplitude_fit_recovery import fit_amplitude, product_matrices
+    from nefqvf.fitting import fit_amplitude, product_matrices
 
     band = 2 * max(degrees)
     features = np.asarray(family.basis(sample, band, baseline), dtype=float)

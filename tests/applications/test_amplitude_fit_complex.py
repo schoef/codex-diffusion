@@ -28,13 +28,13 @@ from applications.amplitude_fit_complex import (
     split_localised,
     terminating_degree,
 )
-from applications.amplitude_fit_degree import reference_coefficients, target_grid
-from applications.amplitude_fit_recovery import (
+from applications.targets import (
     FAMILY_NAMES,
     TARGETS,
-    fit_amplitude,
-    product_matrices,
+    reference_coefficients,
+    target_grid,
 )
+from nefqvf.fitting import fit_amplitude, product_matrices
 
 DEGREE = 5
 GAP = 2.0

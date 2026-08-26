@@ -64,6 +64,14 @@ class GHSFamily(Family):
         grid = symmetric_grid(center, scale, width=45.0, points=400_001)
         return inverse_cdf_sample(self, params, size, rng, grid=grid)
 
+    def _one_shot_sample(self, x, t, params, rng) -> np.ndarray:
+        raise NotImplementedError(
+            "GHS has no one-shot kernel: its spectrally defined relaxation "
+            "semigroup is not positivity preserving, so no forward Markov "
+            "process exists. Marginal members still flow in closed form via "
+            "from_shift_coordinate."
+        )
+
     def variance(self, params: GHSParams) -> np.ndarray:
         """Return ``r / 2 + mean**2 / (2 * r)``."""
 

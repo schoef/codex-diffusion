@@ -52,8 +52,12 @@ from typing import Any
 import numpy as np
 from scipy.linalg import null_space
 
-from applications.amplitude_fit_degree import (
+from applications.baseline_matching import separation_for_gap
+from applications.targets import (
+    FAMILY_NAMES,
+    TARGETS,
     Target,
+    empirical_coefficients,
     integrate,
     mixture_target,
     reference_coefficients,
@@ -61,13 +65,7 @@ from applications.amplitude_fit_degree import (
     target_grid,
     truncated_target,
 )
-from applications.amplitude_fit_recovery import (
-    FAMILY_NAMES,
-    TARGETS,
-    empirical_coefficients,
-    fit_amplitude,
-)
-from applications.baseline_matching import separation_for_gap
+from nefqvf.fitting import fit_amplitude
 
 DEFAULT_DEGREE = 6
 DEFAULT_SEED = 11
@@ -110,7 +108,11 @@ def ratio_coefficients_complex(c: np.ndarray, phi: np.ndarray) -> np.ndarray:
     """Return ``R_k(c) = c^dagger Phi_k c``, real because ``Phi_k`` is real."""
 
     a, b = np.real(c), np.imag(c)
-    return np.einsum("n,knm,m->k", a, phi, a) + np.einsum("n,knm,m->k", b, phi, b)
+    # one GEMV against the flattened stack: the einsum and batched-matmul
+    # forms pay per-matrix dispatch overhead that dominates at these sizes.
+    rho = np.outer(a, a)
+    rho += np.outer(b, b)
+    return phi.reshape(phi.shape[0], -1) @ rho.ravel()
 
 
 def _objective(
@@ -134,7 +136,7 @@ def residual_matrix(
 ) -> np.ndarray:
     """Return ``M = sum_k (W r)_k Phi_k``, the gradient of the convex objective."""
 
-    return np.einsum("k,knm->nm", weight @ residual, phi_active)
+    return np.tensordot(weight @ residual, phi_active, axes=1)
 
 
 def certified_gap(
@@ -263,12 +265,10 @@ def fit_complex_amplitude(
     for iterations in range(1, max_iterations + 1):
         a, b = np.real(c), np.imag(c)
         r = residual(c)
+        rows, n, _ = phi_active.shape
+        flat = phi_active.reshape(rows * n, n)
         jacobian = 2.0 * np.concatenate(
-            (
-                np.einsum("knm,m->kn", phi_active, a),
-                np.einsum("knm,m->kn", phi_active, b),
-            ),
-            axis=1,
+            ((flat @ a).reshape(rows, n), (flat @ b).reshape(rows, n)), axis=1
         )
         # the norm direction and the phase direction, both of which leave the law
         gauge = np.vstack((np.concatenate((a, b)), np.concatenate((-b, a))))

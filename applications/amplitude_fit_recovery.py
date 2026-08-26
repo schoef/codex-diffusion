@@ -36,38 +36,15 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.linalg import null_space
 
-from nefqvf import (
-    GHS,
-    Binomial,
-    BinomialParams,
-    Gamma,
-    GammaParams,
-    GHSParams,
-    NegativeBinomial,
-    NegativeBinomialParams,
-    Normal,
-    NormalParams,
-    Poisson,
-    PoissonParams,
+from applications.targets import (
+    FAMILY_NAMES,
+    TARGETS,
+    empirical_coefficients,
+    exact_amplitude,
+    exact_ratio_coefficients,
 )
-
-FAMILY_NAMES = ("normal", "poisson", "gamma", "binomial", "negative-binomial", "ghs")
-
-# baseline, and a natural shift small enough that a modest degree suffices
-TARGETS: dict[str, tuple[Any, Any, float]] = {
-    "normal": (Normal, NormalParams(mean=0.0, sigma=1.0), 0.5),
-    "poisson": (Poisson, PoissonParams(mean=6.0), 0.4),
-    "gamma": (Gamma, GammaParams(mean=3.0, r=2.5), 0.2),
-    "binomial": (Binomial, BinomialParams(mean=3.6, N=12), 0.4),
-    "negative-binomial": (
-        NegativeBinomial,
-        NegativeBinomialParams(mean=4.0, r=3.0),
-        0.1,
-    ),
-    "ghs": (GHS, GHSParams(mean=0.0, r=1.5), 0.4),
-}
+from nefqvf.fitting import fit_amplitude, product_matrices, ratio_coefficients
 
 DEFAULT_DEGREE = 6
 DEFAULT_SAMPLE_SIZES = (10**3, 10**4, 10**5, 10**6)
@@ -75,145 +52,6 @@ DEFAULT_SEED = 5
 DEFAULT_REPLICATES = 48
 DEFAULT_PLOT_SAMPLE_SIZE = 10**4
 FIGURE_SUBDIRECTORY = "amplitude_fit"
-
-
-# --------------------------------------------------------------------- truth --
-def exact_amplitude(
-    family: Any, baseline: Any, shift: float, degree: int
-) -> np.ndarray:
-    """Return the exact amplitude coefficients, truncated at ``degree``."""
-
-    shifted = family.shifted_params(baseline, shift)
-    affinity = float(family.affinity(baseline, shifted))
-    half = np.asarray(
-        family.shift_coefficients(0.5 * shift, degree, baseline), dtype=float
-    )
-    return affinity * half
-
-
-def exact_ratio_coefficients(
-    family: Any, baseline: Any, shift: float, k_max: int
-) -> np.ndarray:
-    """Return the exact density-ratio coefficients ``gamma_k z(j)^k``."""
-
-    return np.asarray(family.shift_coefficients(shift, k_max, baseline), dtype=float)
-
-
-def product_matrices(family: Any, baseline: Any, degree: int) -> np.ndarray:
-    """Return ``Phi[k] = Lambda[:K+1, :K+1, k]`` for ``k = 0 ... 2K``."""
-
-    tensor = family.linearization_tensor(2 * degree, baseline)
-    return np.ascontiguousarray(
-        np.transpose(tensor[: degree + 1, : degree + 1, :], (2, 0, 1))
-    )
-
-
-def ratio_coefficients(coefficients: np.ndarray, phi: np.ndarray) -> np.ndarray:
-    """Return ``R_k(c) = c^T Phi_k c``."""
-
-    return np.einsum("n,knm,m->k", coefficients, phi, coefficients)
-
-
-# ---------------------------------------------------------------- estimation --
-def empirical_coefficients(
-    family: Any, baseline: Any, observations: np.ndarray, k_max: int
-) -> tuple[np.ndarray, np.ndarray]:
-    """Return the empirical OPS coefficients and their covariance estimate."""
-
-    features = np.asarray(family.basis(observations, k_max, baseline), dtype=float)
-    mean = features.mean(axis=0)
-    centred = features - mean
-    covariance = centred.T @ centred / (len(observations) * (len(observations) - 1))
-    return mean, covariance
-
-
-# ------------------------------------------------------------------- fitting --
-def fit_amplitude(
-    phi: np.ndarray,
-    target: np.ndarray,
-    *,
-    initial: np.ndarray | None = None,
-    weight: np.ndarray | None = None,
-    tau: float = 0.0,
-    penalty: np.ndarray | None = None,
-    k_max: int | None = None,
-    max_iterations: int = 200,
-    tolerance: float = 1e-13,
-) -> dict[str, Any]:
-    """Minimise the coefficient objective on the unit sphere by Riemannian LM.
-
-    Degree zero is excluded from the residual: ``R_0(c) = ||c||^2`` equals one
-    identically on the sphere, so it carries no information and would only add a
-    null row to the Jacobian.
-    """
-    degree = phi.shape[1] - 1
-    penalty = (
-        np.diag(np.arange(degree + 1, dtype=float))
-        if penalty is None
-        else np.diag(np.asarray(penalty, dtype=float))
-    )
-    highest = phi.shape[0] - 1 if k_max is None else int(k_max)
-    active = np.arange(1, highest + 1)
-    phi_active = phi[active]
-    target_active = np.asarray(target, dtype=float)[active]
-    weight_matrix = np.eye(active.size) if weight is None else np.asarray(weight)
-
-    c = np.zeros(degree + 1) if initial is None else np.array(initial, dtype=float)
-    if initial is None:
-        c[0] = 1.0
-    c = c / np.linalg.norm(c)
-
-    def residual(vec: np.ndarray) -> np.ndarray:
-        return np.einsum("n,knm,m->k", vec, phi_active, vec) - target_active
-
-    def objective(vec: np.ndarray) -> float:
-        r = residual(vec)
-        return float(0.5 * r @ weight_matrix @ r + 0.5 * tau * vec @ penalty @ vec)
-
-    mu = 1e-3
-    value = objective(c)
-    iterations = 0
-    for iterations in range(1, max_iterations + 1):
-        r = residual(c)
-        jacobian = 2.0 * np.einsum("knm,m->kn", phi_active, c)
-        tangent = null_space(c[None, :])
-
-        jb = jacobian @ tangent
-        hessian = jb.T @ weight_matrix @ jb + tau * tangent.T @ penalty @ tangent
-        gradient = jb.T @ weight_matrix @ r + tau * tangent.T @ penalty @ c
-        if np.linalg.norm(gradient) < tolerance:
-            break
-
-        accepted = False
-        for _ in range(40):
-            step = np.linalg.solve(hessian + mu * np.eye(hessian.shape[0]), -gradient)
-            trial = c + tangent @ step
-            trial = trial / np.linalg.norm(trial)
-            if trial[0] < 0.0:
-                trial = -trial
-            trial_value = objective(trial)
-            if trial_value < value:
-                c, value, accepted = trial, trial_value, True
-                mu = max(mu * 0.3, 1e-14)
-                break
-            mu *= 3.0
-        if not accepted:
-            break
-
-    # the curvature Gauss-Newton discards, relative to the part it keeps
-    r = residual(c)
-    jacobian = 2.0 * np.einsum("knm,m->kn", phi_active, c)
-    kept = jacobian.T @ weight_matrix @ jacobian
-    discarded = 2.0 * np.einsum("k,knm->nm", weight_matrix @ r, phi_active)
-    return {
-        "coefficients": c,
-        "objective": value,
-        "iterations": iterations,
-        "residual_norm": float(np.linalg.norm(r)),
-        "curvature_ratio": float(
-            np.linalg.norm(discarded, 2) / max(np.linalg.norm(kept, 2), 1e-300)
-        ),
-    }
 
 
 # --------------------------------------------------------------------- driver --

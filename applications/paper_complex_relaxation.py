@@ -46,14 +46,6 @@ from applications.amplitude_fit_complex import (
     relaxed_optimum,
     terminating_degree,
 )
-from applications.amplitude_fit_degree import (
-    integrate,
-    mixture_target,
-    shifted_target,
-    support_grid,
-    truncated_target,
-)
-from applications.amplitude_fit_recovery import TARGETS, fit_amplitude
 from applications.paper_one_channel import (
     FAMILY_TITLES,
     FIT_COLOUR,
@@ -63,6 +55,15 @@ from applications.paper_one_channel import (
     compact_scientific,
     separation_for,
 )
+from applications.targets import (
+    TARGETS,
+    integrate,
+    mixture_target,
+    shifted_target,
+    support_grid,
+    truncated_target,
+)
+from nefqvf.fitting import fit_amplitude
 
 PAGES = (("normal", "poisson"), ("gamma", "binomial"), ("negative-binomial", "ghs"))
 DISPLAY_DEGREE = 12

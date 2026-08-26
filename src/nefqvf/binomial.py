@@ -79,6 +79,20 @@ class BinomialFamily(Family):
         trials = int(params.N)
         return rng.binomial(trials, float(params.mean) / trials, size=size)
 
+    def _one_shot_sample(self, x, t, params, rng) -> np.ndarray:
+        """Ehrenfest transition: each site kept with probability ``w`` or
+        redrawn from the base."""
+
+        trials = int(params.N)
+        if np.any(~(integer_support(x) & (x >= 0) & (x <= trials))):
+            raise ValueError("x must be integers in [0, N]")
+        p = float(params.mean) / trials
+        w = np.exp(-t)
+        n = x.astype(np.int64)
+        kept = rng.binomial(n, p + (1.0 - p) * w)
+        redrawn = rng.binomial(trials - n, p * -np.expm1(-t))
+        return kept + redrawn
+
     def variance(self, params: BinomialParams) -> np.ndarray:
         """Return ``mean * (1 - mean / N)``."""
 

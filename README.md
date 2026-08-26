@@ -14,8 +14,9 @@ natural exponential families with quadratic variance functions:
 
 The current implementation covers probability evaluation, moments, natural
 parameters, Hellinger affinities, orthonormal-polynomial evaluation, exact
-shift coefficients, product-linearization tensors, and inverse-CDF sampling.
-Diffusion kernels and a JAX backend are later milestones.
+shift coefficients, product-linearization tensors, inverse-CDF sampling, and
+the exact one-shot diffusion kernels of the five Markov families
+(`one_shot_sample`). A JAX backend is a later milestone.
 
 This repository is the reference implementation for the accompanying note on
 amplitude parametrisations of NEF-QVF laws, and reproduces its figures. See
@@ -127,6 +128,7 @@ coefficients of a square-root probability amplitude.
 
 ```text
 src/nefqvf/    Installable numerical package
+               (families, orthogonal polynomials, sampling, amplitude fitting)
 applications/ Standalone numerical studies and the figure scripts
 tests/package Package-level tests
 tests/applications/

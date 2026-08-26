@@ -3,23 +3,6 @@
 import numpy as np
 import pytest
 
-from applications.amplitude_fit_degree import (
-    build_targets,
-    integrate,
-    mixture_target,
-    shifted_target,
-    target_grid,
-    total_variation,
-)
-from applications.amplitude_fit_recovery import (
-    FAMILY_NAMES,
-    TARGETS,
-    exact_amplitude,
-    exact_ratio_coefficients,
-    fit_amplitude,
-    product_matrices,
-    ratio_coefficients,
-)
 from applications.baseline_matching import (
     moment_matched,
     select_degree_by_likelihood,
@@ -27,6 +10,19 @@ from applications.baseline_matching import (
     shift_reaching_mean,
 )
 from applications.paper_one_channel import continued_fit, separation_for, width_ratio
+from applications.targets import (
+    FAMILY_NAMES,
+    TARGETS,
+    build_targets,
+    exact_amplitude,
+    exact_ratio_coefficients,
+    integrate,
+    mixture_target,
+    shifted_target,
+    target_grid,
+    total_variation,
+)
+from nefqvf.fitting import fit_amplitude, product_matrices, ratio_coefficients
 
 DEGREE = 5
 # the Krawtchouk basis terminates at N = 12, so 2K must stay within it

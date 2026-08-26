@@ -68,6 +68,22 @@ class NegativeBinomialFamily(Family):
         r = float(params.r)
         return rng.negative_binomial(r, r / (r + float(params.mean)), size=size)
 
+    def _one_shot_sample(self, x, t, params, rng) -> np.ndarray:
+        """Birth-death-immigration transition: binomial thinning, then a
+        negative-binomial replenishment at the contracted parameter."""
+
+        if np.any(~(integer_support(x) & (x >= 0))):
+            raise ValueError("x must be nonnegative integers")
+        r = float(params.r)
+        mean = float(params.mean)
+        c = mean / (mean + r)
+        w = np.exp(-t)
+        denominator = 1.0 - c * w
+        keep = w * (1.0 - c) / denominator
+        c_t = c * -np.expm1(-t) / denominator
+        survivors = rng.binomial(x.astype(np.int64), keep)
+        return survivors + rng.negative_binomial(r + survivors, 1.0 - c_t)
+
     def variance(self, params: NegativeBinomialParams) -> np.ndarray:
         """Return ``mean + mean**2 / r``."""
 

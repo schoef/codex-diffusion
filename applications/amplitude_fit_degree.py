@@ -31,8 +31,6 @@ per-target analysis is needed.
 from __future__ import annotations
 
 import argparse
-from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Any
 
 import matplotlib
@@ -41,199 +39,27 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from applications.amplitude_fit_recovery import (
+from applications.targets import (
     FAMILY_NAMES,
     TARGETS,
-    fit_amplitude,
-    product_matrices,
-    ratio_coefficients,
+    Target,
+    build_targets,
+    reference_coefficients,
+    target_grid,
+    total_variation,
+    usable_degrees,
 )
+from nefqvf.fitting import fit_amplitude, product_matrices, ratio_coefficients
 
 DEFAULT_SAMPLE_SIZES = (10**3, 10**4, 10**5)
 DEFAULT_DEGREES = (2, 3, 4, 5, 6, 8, 10, 12, 16, 20)
 DEFAULT_REPLICATES = 24
 DEFAULT_SEED = 23
-QUADRATURE_POINTS = 20001
+
 FOLDS = 5
 DEFAULT_EPSILONS = (1e-4, 1e-3, 1e-2, 3e-2, 1e-1, 3e-1)
-# The Krawtchouk basis terminates at the binomial index, and the fit needs the
-# product tensor out to 2K, so the binomial baseline with N = 12 caps at K = 6.
-FAMILY_MAX_DEGREE = {"binomial": 6}
+
 FIGURE_SUBDIRECTORY = "degree_selection"
-
-
-@dataclass
-class Target:
-    """A law to be fitted, together with a sampler and its true density."""
-
-    label: str
-    family: Any
-    baseline: Any
-    sample: Callable[[int, Any], np.ndarray]
-    density: Callable[[np.ndarray], np.ndarray]
-    members: tuple[Any, ...] = ()
-
-
-def support_grid(
-    family: Any, baseline: Any, members: tuple[Any, ...] = (), width: float = 40.0
-):
-    """Return a grid wide enough for the integrals, not merely for the mass.
-
-    The integrand is ``p phi_k``, and ``phi_k`` is a degree-``k`` polynomial that
-    grows rapidly away from the centre. A grid that captures all but ``1e-9`` of
-    the mass can therefore still miss a percent of ``R_k`` for the larger ``k``,
-    which is why the width here is generous and why every component of a mixture
-    is taken into account rather than the baseline alone.
-    """
-    parts = (baseline, *members)
-    low = min(
-        float(family.mean(p)) - width * float(np.sqrt(family.variance(p)))
-        for p in parts
-    )
-    high = max(
-        float(family.mean(p)) + width * float(np.sqrt(family.variance(p)))
-        for p in parts
-    )
-    if family.is_lattice(baseline):
-        return np.arange(max(int(np.floor(low)), 0), int(np.ceil(high)) + 1)
-    return np.linspace(low, high, QUADRATURE_POINTS)
-
-
-def target_grid(target: Target, width: float = 40.0) -> np.ndarray:
-    """Return the integration grid for a target."""
-
-    return support_grid(target.family, target.baseline, target.members, width)
-
-
-def integrate(
-    family: Any, baseline: Any, grid: np.ndarray, values: np.ndarray
-) -> float:
-    """Integrate over the grid, summing on a lattice and by trapezoid otherwise."""
-
-    if family.is_lattice(baseline):
-        return float(np.sum(values))
-    return float(np.trapezoid(values, grid))
-
-
-def reference_coefficients(target: Target, k_max: int, grid: np.ndarray) -> np.ndarray:
-    """Return the exact ``R_k = E_target[phi_k]`` by numerical integration."""
-
-    density = target.density(grid)
-    basis = np.asarray(target.family.basis(grid, k_max, target.baseline), dtype=float)
-    return np.array(
-        [
-            integrate(target.family, target.baseline, grid, density * basis[:, k])
-            for k in range(k_max + 1)
-        ]
-    )
-
-
-def total_variation(
-    target: Target, coefficients: np.ndarray, grid: np.ndarray
-) -> float:
-    """Return the total-variation distance between the fitted and true laws."""
-
-    reference = np.asarray(target.family.prob(grid, target.baseline), dtype=float)
-    amplitude = np.asarray(
-        target.family.basis_dot(grid, coefficients, target.baseline), dtype=float
-    )
-    difference = np.abs(reference * amplitude**2 - target.density(grid))
-    return 0.5 * integrate(target.family, target.baseline, grid, difference)
-
-
-# --------------------------------------------------------------------- targets --
-def shifted_target(name: str, shift: float) -> Target:
-    """Return a shifted member of the baseline family."""
-
-    family, baseline, _ = TARGETS[name]
-    member = family.shifted_params(baseline, shift)
-    return Target(
-        label=f"shifted j={shift:g}",
-        family=family,
-        baseline=baseline,
-        sample=lambda size, rng: np.asarray(family.sample(member, size, rng=rng)),
-        density=lambda x: np.asarray(family.prob(x, member), dtype=float),
-        members=(member,),
-    )
-
-
-def mixture_target(name: str, separation: float) -> Target:
-    """Return the equal mixture of two oppositely shifted members."""
-
-    family, baseline, _ = TARGETS[name]
-    plus = family.shifted_params(baseline, separation)
-    minus = family.shifted_params(baseline, -separation)
-
-    def sample(size: int, rng: Any) -> np.ndarray:
-        picks = rng.random(size) < 0.5
-        draws = np.empty(size)
-        count = int(np.count_nonzero(picks))
-        draws[picks] = np.asarray(family.sample(plus, count, rng=rng))
-        draws[~picks] = np.asarray(family.sample(minus, size - count, rng=rng))
-        return draws
-
-    return Target(
-        label=f"mixture d={separation:g}",
-        family=family,
-        baseline=baseline,
-        sample=sample,
-        density=lambda x: (
-            0.5
-            * (
-                np.asarray(family.prob(x, plus), dtype=float)
-                + np.asarray(family.prob(x, minus), dtype=float)
-            )
-        ),
-        members=(plus, minus),
-    )
-
-
-def truncated_target(name: str, quantile: float = 0.8) -> Target:
-    """Return the baseline conditioned on a hard upper limit.
-
-    The limit is placed at a quantile of the baseline, so the discarded mass is
-    the same whatever the family. The resulting density has a jump, which is the
-    feature that makes the amplitude coefficients decay only algebraically.
-    """
-    family, baseline, _ = TARGETS[name]
-    grid = support_grid(family, baseline)
-    density = np.asarray(family.prob(grid, baseline), dtype=float)  # noqa: E501
-    lattice = family.is_lattice(baseline)
-    cumulative = (
-        np.cumsum(density) if lattice else np.cumsum(density) * (grid[1] - grid[0])
-    )
-    limit = float(grid[int(np.searchsorted(cumulative, quantile))])
-    mass = integrate(family, baseline, grid, np.where(grid <= limit, density, 0.0))
-
-    def sample(size: int, rng: Any) -> np.ndarray:
-        kept: list[np.ndarray] = []
-        total = 0
-        while total < size:
-            draw = np.asarray(family.sample(baseline, 2 * size, rng=rng))
-            draw = draw[draw <= limit]
-            kept.append(draw)
-            total += len(draw)
-        return np.concatenate(kept)[:size]
-
-    return Target(
-        label=f"truncated at {limit:g}",
-        family=family,
-        baseline=baseline,
-        sample=sample,
-        density=lambda x: np.where(
-            np.asarray(x) <= limit,
-            np.asarray(family.prob(x, baseline), dtype=float) / mass,
-            0.0,
-        ),
-    )
-
-
-# ----------------------------------------------------------------------- sweep --
-def usable_degrees(name: str, degrees: tuple[int, ...]) -> tuple[int, ...]:
-    """Return the requested degrees, capped where the OPS basis terminates."""
-
-    cap = FAMILY_MAX_DEGREE.get(name)
-    return degrees if cap is None else tuple(d for d in degrees if d <= cap)
 
 
 def scan_target(
@@ -509,27 +335,6 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--epsilons", type=float, nargs="*", default=DEFAULT_EPSILONS)
     parser.add_argument("--no-plot", action="store_true")
     return parser.parse_args()
-
-
-def build_targets(
-    name: str, shift: float, separations: tuple[float, ...], quantile: float
-) -> list[Target]:
-    """Return the ladder of targets, skipping shifts the family cannot represent.
-
-    The natural parameter is constrained in several families -- the negative
-    binomial and the gamma need it negative, the GHS needs it inside a strip --
-    so a separation that is fine for one baseline can leave the family for
-    another. Such a target is dropped with a note rather than clamped, since a
-    silently shrunk separation would not be the case the ladder is meant to test.
-    """
-    targets = [shifted_target(name, shift)]
-    for separation in separations:
-        try:
-            targets.append(mixture_target(name, separation))
-        except (ValueError, AssertionError) as error:
-            print(f"  [{name}] skipping mixture d={separation:g}: {error}")
-    targets.append(truncated_target(name, quantile))
-    return targets
 
 
 def main() -> None:

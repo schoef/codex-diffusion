@@ -47,6 +47,15 @@ class PoissonFamily(Family):
 
         return rng.poisson(float(params.mean), size=size)
 
+    def _one_shot_sample(self, x, t, params, rng) -> np.ndarray:
+        """Immigration-death transition: thin the count, replenish from base."""
+
+        if np.any(~(integer_support(x) & (x >= 0))):
+            raise ValueError("x must be nonnegative integers")
+        mean = float(params.mean)
+        survivors = rng.binomial(x.astype(np.int64), np.exp(-t))
+        return survivors + rng.poisson(mean * -np.expm1(-t))
+
     def variance(self, params: PoissonParams) -> np.ndarray:
         """Return the Poisson variance, equal to its mean."""
 
